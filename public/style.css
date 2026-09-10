@@ -1,0 +1,373 @@
+/* ============================================================
+   XOTIRA TESTI — sayt dizayni
+   Ranglar admin paneldan boshqariladi. Server sahifaga ikkita
+   palitrani joylaydi: qorong'i (standart) va yorug'.
+   ============================================================ */
+:root {
+  /* Server bu qiymatlarni bosib o'tadi — bu faqat zaxira */
+  --fon-1: #0e1b33;
+  --fon-2: #0b1220;
+  --fon-3: #05080f;
+  --natija-fon-1: #1a1440;
+  --natija-fon-2: #0d0a22;
+  --natija-fon-3: #05060f;
+
+  --matn-rang: #eef4ff;
+  --xira-rang: #9db0cc;
+  --natija-matn: #dbe3f5;
+
+  --maydon-fon: #16213a;
+  --maydon-chegara: #2c3a55;
+
+  --variant-1: #2b5f96;
+  --variant-2: #22527f;
+  --variant-matn: #eef4ff;
+  --variant-tanlangan-1: #3d8ddb;
+  --variant-tanlangan-2: #2f76bd;
+  --variant-tanlangan-matn: #ffffff;
+
+  --raqam-fon: #ffffff;
+  --raqam-matn: #0e1b33;
+
+  --tugma-rang: #3aa0ff;
+  --tugma-matn: #ffffff;
+  --cta-rang: #6b4cf6;
+  --cta-rang-2: #7c5cff;
+  --cta-matn: #ffffff;
+
+  --burchak: 999px;
+  --sarlavha-olcham: 40px;
+
+  --xato: #ff6b6b;
+
+  --shrift: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { margin: 0; min-height: 100%; }
+
+body {
+  background: radial-gradient(120% 90% at 15% 0%, var(--fon-1) 0%, var(--fon-2) 45%, var(--fon-3) 100%);
+  background-attachment: fixed;
+  color: var(--matn-rang);
+  font-family: var(--shrift);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  transition: background .3s ease, color .3s ease;
+}
+
+body.is-result {
+  background: radial-gradient(120% 90% at 20% 0%, var(--natija-fon-1) 0%, var(--natija-fon-2) 45%, var(--natija-fon-3) 100%);
+  background-attachment: fixed;
+}
+
+/* ---------------- Progress ---------------- */
+.progress {
+  position: sticky; top: 0; height: 4px; z-index: 10;
+  background: color-mix(in srgb, var(--matn-rang) 15%, transparent);
+}
+.progress__bar {
+  height: 100%; width: 0%;
+  background: var(--matn-rang);
+  border-radius: 0 4px 4px 0;
+  transition: width .35s cubic-bezier(.4,0,.2,1);
+}
+
+/* ---------------- Mavzu tugmasi ---------------- */
+.mavzu {
+  position: fixed;
+  top: 14px; right: 14px;
+  z-index: 20;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--maydon-chegara);
+  background: var(--maydon-fon);
+  color: var(--matn-rang);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .15s ease, border-color .2s ease;
+}
+.mavzu:hover { border-color: var(--tugma-rang); }
+.mavzu:active { transform: scale(.92); }
+
+/* ---------------- Ekranlar ---------------- */
+.stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 26px 20px calc(32px + env(safe-area-inset-bottom));
+}
+.screen { display: none; width: 100%; max-width: 640px; }
+.screen--active { display: block; animation: fade .3s ease both; }
+
+@keyframes fade {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------------- Kirish ---------------- */
+.intro { text-align: center; padding: 10px 0; }
+.intro__icon { font-size: 60px; margin-bottom: 14px; line-height: 1; }
+.intro__title { font-size: 30px; line-height: 1.2; margin: 0 0 16px; font-weight: 700; }
+.intro__text { color: var(--xira-rang); line-height: 1.65; font-size: 16px; margin: 0 0 26px; }
+
+.intro__list {
+  list-style: none;
+  display: flex; justify-content: center; gap: 10px;
+  padding: 0; margin: 0 0 32px;
+}
+.intro__list li {
+  flex: 1; max-width: 130px;
+  background: var(--maydon-fon);
+  border: 1px solid var(--maydon-chegara);
+  border-radius: 16px;
+  padding: 12px 6px;
+  font-size: 12px; color: var(--xira-rang); line-height: 1.3;
+}
+.intro__list span {
+  display: block; font-size: 22px; font-weight: 700;
+  color: var(--matn-rang); margin-bottom: 2px;
+}
+
+/* ---------------- Savol ---------------- */
+.q__title {
+  font-size: 23px; line-height: 1.38; font-weight: 600;
+  margin: 0 0 26px;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.q__num {
+  flex: none; min-width: 24px; height: 24px;
+  margin-top: 6px; padding: 0 6px;
+  border-radius: 7px;
+  background: var(--raqam-fon); color: var(--raqam-matn);
+  font-size: 13px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.q__req { color: var(--tugma-rang); }
+
+.options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+
+.opt {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%;
+  padding: 13px 20px 13px 12px;
+  border: 0;
+  border-radius: var(--burchak);
+  background: linear-gradient(180deg, var(--variant-1), var(--variant-2));
+  color: var(--variant-matn);
+  font-size: 16px; line-height: 1.35;
+  font-family: inherit; text-align: left;
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .2s ease, background .2s ease;
+}
+.opt:active { transform: scale(.985); }
+
+.opt__key {
+  flex: none; width: 26px; height: 26px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--variant-matn) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--variant-matn) 35%, transparent);
+  font-size: 12px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.opt--selected {
+  background: linear-gradient(180deg, var(--variant-tanlangan-1), var(--variant-tanlangan-2));
+  color: var(--variant-tanlangan-matn);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--variant-tanlangan-matn) 60%, transparent),
+              0 6px 22px color-mix(in srgb, var(--variant-tanlangan-1) 35%, transparent);
+}
+.opt--selected .opt__key {
+  background: var(--variant-tanlangan-matn);
+  color: var(--variant-tanlangan-2);
+  border-color: var(--variant-tanlangan-matn);
+}
+
+/* OK tugmasi o'ngda — telefonni o'ng qo'l bilan ushlaganda qulay */
+.q__foot { display: flex; align-items: center; gap: 12px; }
+.q__foot .btn--ok { margin-left: auto; }
+
+.q__hint { margin: 14px 0 0; font-size: 13px; color: var(--xira-rang); min-height: 18px; text-align: right; }
+.q__hint--warn { color: var(--xato); }
+
+/* ---------------- Tugmalar ---------------- */
+.btn {
+  border: 0;
+  border-radius: var(--burchak);
+  background: var(--tugma-rang);
+  color: var(--tugma-matn);
+  font-family: inherit;
+  font-size: 17px; font-weight: 700; letter-spacing: .01em;
+  padding: 14px 36px;
+  cursor: pointer;
+  transition: filter .2s ease, opacity .2s ease, transform .12s ease;
+}
+.btn:active { transform: scale(.97); filter: brightness(.92); }
+.btn:disabled { opacity: .38; cursor: not-allowed; }
+
+.btn--ghost {
+  background: transparent; color: var(--xira-rang);
+  font-weight: 500; font-size: 15px; padding: 14px 10px;
+}
+
+.btn--cta {
+  width: 100%; max-width: 420px;
+  background: linear-gradient(180deg, var(--cta-rang-2), var(--cta-rang));
+  color: var(--cta-matn);
+  padding: 18px 28px; font-size: 17px; letter-spacing: .03em;
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--cta-rang) 42%, transparent);
+}
+.btn--link {
+  display: inline-flex; align-items: center; justify-content: center;
+  text-decoration: none; text-align: center;
+}
+
+/* ---------------- Ism / telefon ---------------- */
+.lead { text-align: center; }
+.lead__badge {
+  display: inline-block;
+  padding: 7px 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tugma-rang) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tugma-rang) 45%, transparent);
+  color: var(--tugma-rang);
+  font-size: 13px; font-weight: 700; letter-spacing: .03em;
+  margin-bottom: 18px;
+}
+.lead__title { font-size: 28px; font-weight: 700; margin: 0 0 12px; }
+.lead__text { color: var(--xira-rang); font-size: 16px; line-height: 1.6; margin: 0 0 28px; }
+
+.form { text-align: left; }
+.field { display: block; margin-bottom: 16px; }
+.field__label { display: block; font-size: 13px; color: var(--xira-rang); margin: 0 0 7px 4px; }
+
+.field__input {
+  width: 100%;
+  padding: 15px 18px;
+  border-radius: 16px;
+  border: 1px solid var(--maydon-chegara);
+  background: var(--maydon-fon);
+  color: var(--matn-rang);
+  font-family: inherit; font-size: 17px;
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.field__input::placeholder { color: color-mix(in srgb, var(--xira-rang) 70%, transparent); }
+.field__input:focus {
+  border-color: var(--cta-rang-2);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cta-rang) 25%, transparent);
+}
+.field__input--err {
+  border-color: var(--xato);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--xato) 20%, transparent);
+}
+
+/* Telefon: davlat tanlagich + raqam */
+.tel { display: flex; gap: 10px; }
+.tel__davlat {
+  font-family: 'Bayroqlar', var(--shrift);
+  flex: 0 0 118px;
+  padding: 15px 10px;
+  border-radius: 16px;
+  border: 1px solid var(--maydon-chegara);
+  background: var(--maydon-fon);
+  color: var(--matn-rang);
+  font-size: 16px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.tel__davlat:focus {
+  border-color: var(--cta-rang-2);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cta-rang) 25%, transparent);
+}
+.tel__davlat option {
+  font-family: 'Bayroqlar', var(--shrift);
+  background: var(--maydon-fon);
+  color: var(--matn-rang);
+}
+.tel__raqam { flex: 1; min-width: 0; }
+
+.form__error { min-height: 20px; margin: 0 0 8px 4px; font-size: 14px; color: var(--xato); }
+.form__note { margin: 14px 0 0; font-size: 12.5px; color: var(--xira-rang); opacity: .8; text-align: center; }
+.form .btn--cta { display: block; margin: 0 auto; }
+
+/* ---------------- Yuklanish ---------------- */
+.loading { text-align: center; color: var(--xira-rang); }
+.spinner {
+  width: 44px; height: 44px; margin: 0 auto 18px;
+  border: 3px solid color-mix(in srgb, var(--matn-rang) 18%, transparent);
+  border-top-color: var(--cta-rang-2);
+  border-radius: 50%;
+  animation: spin .9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------------- Natija ---------------- */
+.result { text-align: center; }
+.result__title {
+  font-size: var(--sarlavha-olcham);
+  font-weight: 800; letter-spacing: .01em;
+  margin: 0 0 28px;
+  line-height: 1.1;
+}
+.result__title--err { font-size: 28px; color: var(--xato); }
+
+.result__text {
+  text-align: left;
+  color: var(--natija-matn);
+  font-size: 17px; line-height: 1.62;
+  margin: 0 0 22px;
+  white-space: pre-line;
+}
+.result__text--bold { color: var(--matn-rang); font-weight: 700; margin-bottom: 32px; }
+
+/* ============================================================
+   TELEFON VA KICHIK EKRANLAR
+   ============================================================ */
+@media (max-width: 560px) {
+  .stage { padding: 20px 16px calc(28px + env(safe-area-inset-bottom)); }
+  .mavzu { width: 36px; height: 36px; font-size: 15px; top: 10px; right: 10px; }
+
+  .intro__icon { font-size: 48px; }
+  .intro__title { font-size: 25px; }
+  .intro__text { font-size: 15px; }
+  .intro__list { gap: 8px; }
+  .intro__list li { padding: 10px 4px; font-size: 11px; }
+  .intro__list span { font-size: 19px; }
+
+  .q__title { font-size: 20px; margin-bottom: 20px; }
+  .options { gap: 10px; }
+  .opt { font-size: 15px; padding: 12px 16px 12px 10px; }
+  .opt__key { width: 24px; height: 24px; font-size: 11px; }
+
+  .btn { padding: 13px 26px; font-size: 16px; }
+  .btn--ok { min-width: 110px; }
+  .btn--ghost { padding: 13px 6px; font-size: 14px; }
+  .btn--cta { padding: 16px 20px; font-size: 16px; }
+
+  .lead__title { font-size: 23px; }
+  .lead__text { font-size: 15px; margin-bottom: 22px; }
+  .field__input, .tel__davlat { font-size: 16px; padding: 14px 14px; }  /* 16px — iOS "zoom" qilmasin */
+  .tel__davlat { flex: 0 0 104px; }
+
+  .result__title { font-size: calc(var(--sarlavha-olcham) * 0.72); margin-bottom: 22px; }
+  .result__text { font-size: 16px; }
+}
+
+@media (max-width: 360px) {
+  .tel { flex-direction: column; }
+  .tel__davlat { flex: none; width: 100%; }
+  .intro__list li { font-size: 10.5px; }
+}
+
+/* Harakatni kamaytirish so'ralgan bo'lsa */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

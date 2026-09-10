@@ -1,0 +1,14 @@
+bayroqlar.woff2
+================
+Noto Color Emoji (Google) shriftidan faqat davlat bayroqlari glyphlari
+kesib olingan (subset).
+
+Litsenziya: SIL Open Font License 1.1
+https://scripts.sil.org/OFL
+
+Manba: https://fonts.google.com/noto/specimen/Noto+Color+Emoji
+
+Nima uchun kerak: Windows'da davlat bayroqlari emojilari yo'q — brauzer
+ularni "UZ", "RU" kabi harflar bilan almashtiradi. Shu shrift yuklansa
+bayroqlar to'g'ri ko'rinadi. Telefonlarda (Android/iOS) bayroqlar allaqachon
+ishlagani uchun shrift yuklanmaydi.

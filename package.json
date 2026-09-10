@@ -1,0 +1,14 @@
+{
+  "name": "xotira-quiz-sayt",
+  "version": "2.0.0",
+  "description": "Xotira testi sayti: 15 savol, ball tizimi va javoblarga mos video tavsiyasi + admin panel",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test:score": "node scripts/test-scoring.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "private": true
+}

@@ -1,0 +1,622 @@
+/* ============================================================
+   BOSHQARUV PANELI — dizayn
+   Ikkita mavzu: qorong'i (standart) va yorug'
+   ============================================================ */
+:root {
+  --bg: #0c1119;
+  --panel: #131a26;
+  --panel-2: #182131;
+  --chiziq: #253044;
+  --maydon: #0e141e;
+  --text: #e9eef8;
+  --muted: #8b9bb4;
+  --violet: #6b4cf6;
+  --violet-2: #7c5cff;
+  --yashil: #2fbf71;
+  --qizil: #ff6b6b;
+  --soya: rgba(0,0,0,.4);
+}
+
+/* Yorug' mavzu */
+:root[data-mavzu="yorug"] {
+  --bg: #f4f6fa;
+  --panel: #ffffff;
+  --panel-2: #eef2f8;
+  --chiziq: #dde3ec;
+  --maydon: #ffffff;
+  --text: #16202f;
+  --muted: #64748b;
+  --violet: #5b3ce6;
+  --violet-2: #6d4cf5;
+  --yashil: #1f9d57;
+  --qizil: #dc2626;
+  --soya: rgba(15,23,42,.08);
+}
+
+/* Foydalanuvchi tanlamagan bo'lsa — tizim rejimiga ergashamiz */
+@media (prefers-color-scheme: light) {
+  :root:not([data-mavzu="qorongi"]) {
+    --bg: #f4f6fa;
+    --panel: #ffffff;
+    --panel-2: #eef2f8;
+    --chiziq: #dde3ec;
+    --maydon: #ffffff;
+    --text: #16202f;
+    --muted: #64748b;
+    --violet: #5b3ce6;
+    --violet-2: #6d4cf5;
+    --yashil: #1f9d57;
+    --qizil: #dc2626;
+    --soya: rgba(15,23,42,.08);
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+h1, h2, h3 { margin: 0; }
+.muted { color: var(--muted); font-size: 13.5px; margin: 6px 0 0; max-width: 80ch; }
+
+/* ---------------- Kirish ---------------- */
+.login { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.login__box {
+  width: 100%; max-width: 360px;
+  background: var(--panel);
+  border: 1px solid var(--chiziq);
+  border-radius: 20px;
+  padding: 34px 28px;
+  text-align: center;
+}
+.login__icon { font-size: 40px; margin-bottom: 10px; }
+.login__title { font-size: 20px; margin-bottom: 22px; font-weight: 700; }
+
+/* ---------------- Elementlar ---------------- */
+.input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 11px;
+  border: 1px solid var(--chiziq);
+  background: var(--maydon);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14.5px;
+  outline: none;
+  transition: border-color .18s, box-shadow .18s;
+}
+.input:focus { border-color: var(--violet-2); box-shadow: 0 0 0 3px rgba(107,76,246,.2); }
+textarea.input { resize: vertical; min-height: 84px; line-height: 1.55; }
+select.input { cursor: pointer; }
+
+.err { color: var(--qizil); font-size: 13.5px; min-height: 20px; margin: 8px 0; }
+
+.btn {
+  border: 1px solid var(--chiziq);
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px; font-weight: 600;
+  border-radius: 11px;
+  padding: 11px 18px;
+  cursor: pointer;
+  transition: background .18s, border-color .18s, opacity .18s;
+}
+.btn:hover { background: var(--panel-2); filter: brightness(.97); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.btn--primary {
+  width: 100%;
+  border: 0;
+  background: linear-gradient(180deg, var(--violet-2), var(--violet));
+  color: #fff;
+  padding: 13px 22px; font-size: 15px; letter-spacing: .02em;
+}
+.btn--primary:hover { filter: brightness(1.08); }
+.btn--ghost { background: transparent; }
+
+.btn--qosh {
+  border-style: dashed;
+  color: var(--muted);
+  background: transparent;
+  width: 100%;
+  margin-bottom: 8px;
+}
+.btn--qosh:hover { color: var(--text); border-color: var(--violet-2); background: transparent; }
+.btn--kichik { width: auto; padding: 7px 14px; font-size: 13px; margin-top: 8px; }
+
+.mini {
+  border: 1px solid var(--chiziq);
+  background: var(--panel-2);
+  color: var(--muted);
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  border-radius: 8px;
+  padding: 6px 9px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mini:hover { color: var(--text); background: var(--panel-2); }
+.mini--qizil:hover { color: #fff; background: var(--qizil); border-color: var(--qizil); }
+.mini--faol { background: var(--violet); color: #fff; border-color: var(--violet); }
+
+.link { color: var(--muted); text-decoration: none; font-size: 13.5px; white-space: nowrap; }
+.link:hover { color: var(--text); }
+
+.kim { color: var(--muted); font-size: 13px; white-space: nowrap; }
+
+.nishon {
+  display: inline-block; margin-left: 8px;
+  background: var(--violet); color: #fff;
+  font-size: 10.5px; font-weight: 700;
+  border-radius: 5px; padding: 2px 6px;
+}
+
+/* ---------------- Yuqori panel ---------------- */
+.top {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 12px 20px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--chiziq);
+  position: sticky; top: 0; z-index: 5;
+}
+.top__brand { font-weight: 700; font-size: 15px; white-space: nowrap; }
+.top__right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.tab {
+  border: 0; background: transparent;
+  color: var(--muted);
+  font-family: inherit; font-size: 13.5px; font-weight: 600;
+  padding: 8px 13px; border-radius: 9px; cursor: pointer;
+}
+.tab:hover { color: var(--text); background: var(--panel-2); }
+.tab--active { color: #fff; background: var(--panel-2); box-shadow: inset 0 0 0 1px var(--chiziq); }
+
+/* ---------------- Bo'limlar ---------------- */
+.tabpane { display: none; padding: 24px 20px 90px; max-width: 1180px; }
+.tabpane--active { display: block; }
+
+.head { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.head h2 { font-size: 19px; }
+.head .btn { margin-left: auto; flex: none; }
+
+.bolim { font-size: 15px; margin: 28px 0 12px; color: var(--muted); font-weight: 600; }
+
+/* ---------------- Yordam ---------------- */
+.yordam {
+  background: var(--panel);
+  border: 1px solid var(--chiziq);
+  border-radius: 12px;
+  margin-bottom: 18px;
+}
+.yordam summary {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--muted);
+  font-weight: 600;
+  user-select: none;
+}
+.yordam summary:hover { color: var(--text); }
+.yordam__ich { padding: 0 18px 14px; font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+.yordam__ich p { margin: 8px 0; }
+.yordam__ich ul { margin: 6px 0; padding-left: 20px; }
+.yordam__ich b { color: var(--text); }
+
+/* ---------------- Kartochka ---------------- */
+.karta {
+  background: var(--panel);
+  border: 1px solid var(--chiziq);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.karta__sarlavha {
+  font-weight: 700; font-size: 14px;
+  color: var(--muted);
+  text-transform: uppercase; letter-spacing: .06em;
+  margin-bottom: 14px;
+}
+.karta__bosh { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.karta__id {
+  background: var(--violet); color: #fff;
+  font-size: 12px; font-weight: 700;
+  border-radius: 7px; padding: 4px 9px;
+  flex: none;
+}
+.karta__kimga { color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+.amallar { display: flex; gap: 6px; flex: none; }
+
+.qator { margin-bottom: 12px; }
+.qator:last-child { margin-bottom: 0; }
+.qator__label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+.qatorlar { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+
+.checkbox { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--muted); cursor: pointer; }
+.checkbox input { accent-color: var(--violet); }
+
+/* ---------------- Savol variantlari ---------------- */
+.yosh-belgi {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12.5px; color: var(--muted);
+  margin-bottom: 12px; cursor: pointer;
+}
+.yosh-belgi input { accent-color: var(--violet); }
+
+.variantlar__bosh,
+.variant {
+  display: grid;
+  grid-template-columns: 34px minmax(180px, 1fr) repeat(8, 52px) 84px;
+  gap: 6px;
+  align-items: center;
+}
+/* Yosh savolida qo'shimcha "Guruh" ustuni bo'ladi */
+.variantlar__bosh--yosh,
+.variant--yosh {
+  grid-template-columns: 34px minmax(180px, 1fr) repeat(8, 52px) 78px 84px;
+}
+.variantlar__bosh { margin-bottom: 6px; padding-left: 0; }
+.variantlar__bosh .vb:first-child { grid-column: 1 / 3; }
+
+.vb { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+.vb--son { text-align: center; }
+.vb--matn { padding-left: 40px; }
+
+.variant { margin-bottom: 6px; }
+.variant__key {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--panel-2);
+  border: 1px solid var(--chiziq);
+  color: var(--muted);
+  font-size: 11px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.variant__amallar { display: flex; gap: 4px; }
+.variant__izoh { font-size: 12px; color: var(--muted); }
+.variant__bosh-joy { display: block; }
+
+.variant--katta { opacity: .85; margin-bottom: 12px; }
+.variant--katta .variant__key { background: var(--violet); color: #fff; border-color: var(--violet); font-size: 9.5px; }
+.variant-guruh { border-left: 2px solid var(--violet); padding-left: 8px; margin-left: -10px; margin-bottom: 8px; }
+
+.input.son { padding: 8px 4px; text-align: center; font-size: 13px; }
+.input.son::-webkit-outer-spin-button,
+.input.son::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.input.son { -moz-appearance: textfield; }
+
+.mini-select { padding: 8px 6px; font-size: 12px; }
+
+/* ---------------- Video qoidalari ---------------- */
+.qoida {
+  display: grid;
+  grid-template-columns: 160px 110px 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.qoida__qism--keng { display: flex; flex-direction: column; justify-content: flex-start; }
+
+.shartlar { display: flex; flex-direction: column; gap: 8px; }
+.shart { display: grid; grid-template-columns: 1fr 24px 70px auto; gap: 8px; align-items: center; }
+.shart__belgi { text-align: center; color: var(--muted); font-weight: 700; }
+
+/* ---------------- Dizayn ranglari ---------------- */
+.rang { display: grid; grid-template-columns: 46px 110px 1fr; gap: 12px; align-items: center; margin-bottom: 10px; }
+.rang__tanlov {
+  width: 46px; height: 36px; padding: 2px;
+  border: 1px solid var(--chiziq);
+  border-radius: 9px;
+  background: var(--maydon);
+  cursor: pointer;
+}
+.rang__matn { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; }
+.rang__nom { font-size: 13.5px; color: var(--muted); }
+
+/* ---------------- Saqlash paneli ---------------- */
+.saqlash {
+  position: sticky; bottom: 0;
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 0;
+  background: linear-gradient(180deg, transparent, var(--bg) 40%);
+}
+.saqlash .btn--primary { width: auto; min-width: 180px; }
+.saqlash__holat { font-size: 13.5px; }
+.saqlash__holat--ok { color: var(--yashil); }
+.saqlash__holat--err { color: var(--qizil); }
+
+/* ---------------- Statistika ---------------- */
+.kartalar { display: flex; gap: 12px; flex-wrap: wrap; }
+.stat {
+  flex: 1; min-width: 130px;
+  background: var(--panel);
+  border: 1px solid var(--chiziq);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+.stat__son { font-size: 26px; font-weight: 700; }
+.stat__nom { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+
+.bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--chiziq);
+  font-size: 14px;
+}
+.bar:last-child { border-bottom: 0; }
+.bar__nom { width: 90px; font-weight: 700; flex: none; }
+.bar__chiziq { flex: 1; height: 8px; background: var(--panel-2); border-radius: 4px; overflow: hidden; }
+.bar__toldirish { height: 100%; display: block; background: linear-gradient(90deg, var(--violet-2), var(--violet)); }
+.bar__son { width: 100px; text-align: right; color: var(--muted); font-size: 13px; flex: none; }
+
+.jadval-wrap { overflow-x: auto; }
+.jadval { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.jadval th, .jadval td {
+  text-align: left; padding: 9px 12px;
+  border-bottom: 1px solid var(--chiziq);
+  white-space: nowrap;
+}
+.jadval th { color: var(--muted); font-weight: 600; font-size: 12.5px; }
+.jadval td .mini { margin-right: 6px; }
+
+/* ---------------- Tarix ---------------- */
+.amal {
+  background: var(--panel);
+  border: 1px solid var(--chiziq);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+.amal__bosh { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13.5px; }
+.amal__vaqt { color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+.amal__kim { font-weight: 700; }
+.amal__matn { color: var(--text); }
+.amal__son {
+  margin-left: auto;
+  color: var(--muted); font-size: 12px;
+  background: var(--panel-2);
+  border-radius: 6px; padding: 2px 8px;
+}
+.amal__royxat {
+  margin: 10px 0 0; padding-left: 20px;
+  font-size: 13px; color: var(--muted); line-height: 1.7;
+}
+
+/* ---------------- Kichik ekran ---------------- */
+@media (max-width: 1150px) {
+  .variantlar__bosh, .variant { grid-template-columns: 30px minmax(140px, 1fr) repeat(8, 46px) 84px; }
+  .variantlar__bosh--yosh, .variant--yosh { grid-template-columns: 30px minmax(140px, 1fr) repeat(8, 46px) 70px 84px; }
+}
+@media (max-width: 900px) {
+  .tabpane { padding: 18px 12px 90px; }
+  .top__right { width: 100%; margin-left: 0; }
+  .qoida { grid-template-columns: 1fr; }
+  .variantlar__bosh { display: none; }
+
+  .variant, .variant--yosh {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--chiziq);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    grid-template-columns: none;
+  }
+  .variant .variant-matn { flex: 1 1 100%; }
+  .variant .input.son { flex: 0 0 52px; }
+  .variant .mini-select { flex: 0 0 80px; }
+  .variant__amallar { margin-left: auto; }
+  .variant__izoh { flex: 1 1 100%; }
+  .variant__bosh-joy { display: none; }
+  .variant-guruh { margin-left: 0; }
+}
+
+/* ---------------- Mavzu tugmasi ---------------- */
+.mavzu-tugma {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--chiziq);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 15px; line-height: 1;
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none;
+}
+.mavzu-tugma:hover { border-color: var(--violet-2); }
+
+/* ---------------- Telefon versiyasi ---------------- */
+@media (max-width: 640px) {
+  body { font-size: 14.5px; }
+
+  .top {
+    padding: 10px 12px;
+    gap: 10px;
+    align-items: center;
+  }
+  .top__brand { font-size: 14px; order: 1; }
+  .top__right { order: 2; width: auto; margin-left: auto; gap: 8px; }
+  .top__right .link { display: none; }
+  .kim { display: none; }
+
+  /* Tablar — yonma-yon suriladi */
+  .tabs {
+    order: 3;
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: none; padding: 8px 12px; font-size: 13px; }
+
+  .tabpane { padding: 16px 10px 100px; }
+  .head { flex-direction: column; align-items: stretch; gap: 10px; }
+  .head .btn { margin-left: 0; width: 100%; }
+  .head h2 { font-size: 17px; }
+  .muted { font-size: 13px; }
+
+  .karta { padding: 14px 12px; border-radius: 12px; }
+  .karta__bosh { flex-wrap: wrap; }
+  .karta__bosh .input { order: 3; width: 100%; }
+  .karta__kimga { display: none; }
+
+  .qatorlar { grid-template-columns: 1fr; }
+  .shart { grid-template-columns: 1fr 20px 60px auto; }
+
+  .rang { grid-template-columns: 42px 96px 1fr; gap: 8px; }
+  .rang__nom { font-size: 12.5px; }
+
+  .saqlash { padding: 12px 0; }
+  .saqlash .btn--primary { flex: 1; min-width: 0; }
+  .saqlash__holat { font-size: 12.5px; }
+
+  .stat { min-width: 100px; padding: 12px 14px; }
+  .stat__son { font-size: 22px; }
+  .bar { font-size: 13px; gap: 8px; }
+  .bar__nom { width: 62px; font-size: 12px; }
+  .bar__son { width: 78px; font-size: 12px; }
+
+  .jadval th, .jadval td { padding: 8px 9px; font-size: 12.5px; }
+
+  .amal { padding: 10px 12px; }
+  .amal__bosh { gap: 8px; font-size: 13px; }
+  .amal__son { margin-left: 0; }
+  .amal__royxat { font-size: 12.5px; padding-left: 16px; }
+
+  .login__box { padding: 26px 20px; }
+}
+
+/* iOS kiritishda sahifani kattalashtirmasin */
+@media (max-width: 900px) {
+  .input, select.input, textarea.input { font-size: 16px; }
+  .input.son { font-size: 15px; padding: 9px 4px; }
+}
+
+/* ---------------- Dizayn: mavzu tanlagich ---------------- */
+.mavzu-tanlov {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--chiziq);
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+.mavzu-tanlov__tugma {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 9px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mavzu-tanlov__tugma:hover { color: var(--text); }
+.mavzu-tanlov__tugma--faol {
+  background: var(--violet);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .mavzu-tanlov { display: flex; width: 100%; }
+  .mavzu-tanlov__tugma { flex: 1; padding: 9px 8px; font-size: 12.5px; }
+}
+
+/* ---------------- Ball kataklari ---------------- */
+.son-katak { display: block; }
+.son-katak__nom { display: none; }
+.son-katak .input.son { width: 100%; }
+
+@media (max-width: 900px) {
+  .son-katak {
+    flex: 0 0 58px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .son-katak__nom {
+    display: block;
+    font-size: 9.5px;
+    line-height: 1.1;
+    color: var(--muted);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .variant .input.son { flex: none; }
+}
+
+/* ---------------- Voronka ---------------- */
+.head__amallar { margin-left: auto; display: flex; gap: 8px; flex: none; }
+
+.davr { display: inline-flex; gap: 4px; padding: 4px; background: var(--panel); border: 1px solid var(--chiziq); border-radius: 11px; margin-bottom: 14px; }
+.davr__tugma {
+  border: 0; background: transparent; color: var(--muted);
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  padding: 7px 14px; border-radius: 8px; cursor: pointer; white-space: nowrap;
+}
+.davr__tugma:hover { color: var(--text); }
+.davr__tugma--faol { background: var(--violet); color: #fff; }
+
+.qadam {
+  background: var(--panel);
+  border: 1px solid var(--chiziq);
+  border-radius: 12px;
+  padding: 13px 16px;
+  margin-bottom: 10px;
+}
+.qadam__bosh { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; flex-wrap: wrap; }
+.qadam__raqam {
+  width: 22px; height: 22px; flex: none;
+  border-radius: 50%;
+  background: var(--panel-2); border: 1px solid var(--chiziq);
+  color: var(--muted); font-size: 11px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.qadam__nom { font-weight: 600; font-size: 14.5px; }
+.qadam__son { margin-left: auto; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.qadam__otish {
+  background: color-mix(in srgb, var(--yashil) 18%, transparent);
+  color: var(--yashil);
+  border-radius: 6px; padding: 2px 8px;
+  font-size: 12px; font-weight: 700; white-space: nowrap;
+}
+.qadam__otish--past {
+  background: color-mix(in srgb, var(--qizil) 18%, transparent);
+  color: var(--qizil);
+}
+.qadam__chiziq { height: 10px; background: var(--panel-2); border-radius: 5px; overflow: hidden; }
+.qadam__toldirish { height: 100%; background: linear-gradient(90deg, var(--violet-2), var(--violet)); border-radius: 5px; }
+.qadam__izoh { margin-top: 7px; font-size: 12.5px; color: var(--muted); }
+
+.qadam__xulosa {
+  margin-top: 14px; padding: 12px 16px;
+  background: color-mix(in srgb, var(--violet) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--violet) 35%, transparent);
+  border-radius: 12px;
+  font-size: 13.5px;
+}
+
+@media (max-width: 640px) {
+  .head__amallar { width: 100%; margin-left: 0; }
+  .head__amallar .btn { flex: 1; }
+  .davr { display: flex; width: 100%; }
+  .davr__tugma { flex: 1; padding: 7px 6px; font-size: 12.5px; }
+  .qadam__son { margin-left: 0; }
+}

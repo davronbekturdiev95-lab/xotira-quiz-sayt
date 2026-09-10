@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{{sayt_nomi}}</title>
+  <meta name="description" content="{{sayt_tavsif}}" />
+  <meta property="og:title" content="{{sayt_nomi}}" />
+  <meta property="og:description" content="{{sayt_tavsif}}" />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0b1220" id="theme-color" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>" />
+
+  <script>
+    /* Mavzu sahifa chizilishidan oldin qo'yiladi — "miltillash" bo'lmasin */
+    (function () {
+      try {
+        var m = localStorage.getItem('xt-mavzu');
+        if (m === 'yorug' || m === 'qorongi') document.documentElement.setAttribute('data-mavzu', m);
+      } catch (e) {}
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/style.css" />
+  <style>/*DIZAYN*/</style>
+  <script>/*SOZLAMALAR*/</script>
+
+  <!-- ===== PIKSELLAR UCHUN JOY (Facebook / Yandex / Google) ===== -->
+  <!-- ============================================================ -->
+</head>
+<body>
+  <div class="progress"><div class="progress__bar" id="bar"></div></div>
+
+  <button class="mavzu" id="mavzu-tugma" type="button" aria-label="Mavzuni almashtirish">
+    <span id="mavzu-belgi">🌙</span>
+  </button>
+
+  <main class="stage">
+
+    <!-- ================= KIRISH ================= -->
+    <section class="screen screen--active" id="screen-intro">
+      <div class="intro">
+        <div class="intro__icon" id="intro-belgi"></div>
+        <h1 class="intro__title" id="intro-sarlavha"></h1>
+        <p class="intro__text" id="intro-matn"></p>
+        <ul class="intro__list" id="intro-stat"></ul>
+        <button class="btn" id="btn-start"></button>
+      </div>
+    </section>
+
+    <!-- ================= SAVOL ================= -->
+    <section class="screen" id="screen-question">
+      <div class="q">
+        <h2 class="q__title">
+          <span class="q__num" id="q-num">1</span>
+          <span><span id="q-text"></span><span class="q__req">*</span></span>
+        </h2>
+        <div class="options" id="options"></div>
+        <div class="q__foot">
+          <button class="btn btn--ghost" id="btn-back" hidden></button>
+          <button class="btn btn--ok" id="btn-ok" disabled>OK</button>
+        </div>
+        <p class="q__hint" id="q-hint"></p>
+      </div>
+    </section>
+
+    <!-- ================= ISM / TELEFON ================= -->
+    <section class="screen" id="screen-lead">
+      <div class="lead">
+        <div class="lead__badge" id="lead-belgi"></div>
+        <h2 class="lead__title" id="lead-sarlavha"></h2>
+        <p class="lead__text" id="lead-matn"></p>
+
+        <form class="form" id="lead-form" novalidate>
+          <label class="field">
+            <span class="field__label" id="lbl-ism"></span>
+            <input class="field__input" id="inp-ism" type="text" name="ism"
+                   autocomplete="given-name" maxlength="60" />
+          </label>
+
+          <div class="field">
+            <span class="field__label" id="lbl-tel"></span>
+            <div class="tel">
+              <select class="tel__davlat" id="inp-davlat" aria-label="Davlat"></select>
+              <input class="field__input tel__raqam" id="inp-tel" type="tel" name="telefon"
+                     autocomplete="tel" inputmode="numeric" />
+            </div>
+          </div>
+
+          <p class="form__error" id="lead-error"></p>
+          <button class="btn btn--cta" id="btn-lead" type="submit"></button>
+          <p class="form__note" id="lead-izoh"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ================= YUKLANISH ================= -->
+    <section class="screen" id="screen-loading">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p id="loading-text"></p>
+      </div>
+    </section>
+
+    <!-- ================= NATIJA ================= -->
+    <section class="screen" id="screen-result">
+      <div class="result">
+        <h1 class="result__title" id="res-sarlavha"></h1>
+        <p class="result__text" id="res-daraja"></p>
+        <p class="result__text result__text--bold" id="res-video"></p>
+        <a class="btn btn--cta btn--link" id="btn-video" href="#" rel="noopener"></a>
+      </div>
+    </section>
+
+    <!-- ================= XATOLIK ================= -->
+    <section class="screen" id="screen-error">
+      <div class="result">
+        <h1 class="result__title result__title--err" id="err-sarlavha"></h1>
+        <p class="result__text" id="err-text"></p>
+        <button class="btn" id="btn-retry"></button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

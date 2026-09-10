@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Boshqaruv paneli — Xotira testi</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>" />
+  <script>
+    (function () {
+      try {
+        var m = localStorage.getItem('xt-admin-mavzu');
+        if (m === 'yorug' || m === 'qorongi') document.documentElement.setAttribute('data-mavzu', m);
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="/admin.css" />
+</head>
+<body>
+
+  <!-- ================= KIRISH ================= -->
+  <div class="login" id="login">
+    <form class="login__box" id="login-form">
+      <div class="login__icon">🔐</div>
+      <h1 class="login__title">Boshqaruv paneli</h1>
+      <input class="input" id="login-name" type="text" placeholder="Login" autocomplete="username" />
+      <div style="height:10px"></div>
+      <input class="input" id="login-pass" type="password" placeholder="Parol" autocomplete="current-password" />
+      <p class="err" id="login-err"></p>
+      <button class="btn btn--primary" type="submit" id="login-btn">KIRISH</button>
+    </form>
+  </div>
+
+  <!-- ================= PANEL ================= -->
+  <div class="panel" id="panel" hidden>
+    <header class="top">
+      <div class="top__brand">🧠 Xotira testi</div>
+      <nav class="tabs">
+        <button class="tab tab--active" data-tab="savollar">Savollar</button>
+        <button class="tab" data-tab="videolar">Videolar</button>
+        <button class="tab" data-tab="matnlar">Matnlar</button>
+        <button class="tab" data-tab="dizayn">Dizayn</button>
+        <button class="tab" data-tab="statistika">Statistika</button>
+        <button class="tab" data-tab="adminlar">Adminlar</button>
+        <button class="tab" data-tab="tarix">Tarix</button>
+      </nav>
+      <div class="top__right">
+        <span class="kim" id="kim"></span>
+        <button class="mavzu-tugma" id="mavzu-tugma" type="button" title="Mavzuni almashtirish"><span id="mavzu-belgi">🌙</span></button>
+        <a class="link" href="/" target="_blank" rel="noopener">Saytni ochish ↗</a>
+        <button class="btn btn--ghost" id="logout">Chiqish</button>
+      </div>
+    </header>
+
+    <!-- ---------------- SAVOLLAR ---------------- -->
+    <section class="tabpane tabpane--active" id="pane-savollar">
+      <div class="head">
+        <div>
+          <h2>Savollar</h2>
+          <p class="muted">Savol va variantlarni qo'shish, o'chirish, tartibini o'zgartirish mumkin.
+             Har bir variant qanday ball berishini o'ng tomondagi kataklardan sozlaysiz —
+             aynan shu ballar oxirida qaysi video chiqishini hal qiladi.</p>
+        </div>
+      </div>
+
+      <details class="yordam">
+        <summary>Ballar nimani anglatadi?</summary>
+        <div class="yordam__ich">
+          <p><b>O'qlar — qaysi video havolasi beriladi:</b></p>
+          <ul>
+            <li><b>Xotira</b> — ismlar, raqamlar, faktlar bilan bog'liq muammo</li>
+            <li><b>Diqqat</b> — chalg'ish, kundalik ishlarni unutish</li>
+            <li><b>Til</b> — chet tili o'rganish</li>
+          </ul>
+          <p>Eng ko'p foiz to'plagan o'q g'olib bo'ladi.</p>
+          <p><b>Belgilar — o'q ichida qaysi video tanlanishini aniqlaydi:</b></p>
+          <ul>
+            <li><b>Aniq</b> — ism, raqam, sana kabi aniq narsalar</li>
+            <li><b>Hajm</b> — kitob, faktlar, katta hajmdagi bilim</li>
+            <li><b>Talaba</b> — o'quvchi/talaba, dars qilish konteksti</li>
+            <li><b>Yangi</b> — yangi boshlovchi, vaqti kam</li>
+          </ul>
+          <p><b>Daraja</b> — unutuvchanlik og'irligi (0–100% shkala). Natija sahifasidagi
+             birinchi abzats shu ballga qarab tanlanadi.</p>
+        </div>
+      </details>
+
+      <div id="savollar"></div>
+      <button class="btn btn--qosh" id="savol-qosh">+ Yangi savol qo'shish</button>
+
+      <div class="saqlash">
+        <button class="btn btn--primary" id="save-savollar">SAQLASH</button>
+        <span class="saqlash__holat" id="holat-savollar"></span>
+      </div>
+    </section>
+
+    <!-- ---------------- VIDEOLAR ---------------- -->
+    <section class="tabpane" id="pane-videolar">
+      <div class="head">
+        <div>
+          <h2>Videolar va havolalar</h2>
+          <p class="muted">Test yakunida "BEPUL VIDEONI KO'RISH" tugmasi shu havolalarga olib boradi.
+             Har bir videoga qaysi holatda chiqishi qoida sifatida beriladi.</p>
+        </div>
+      </div>
+
+      <details class="yordam">
+        <summary>Qoidalar qanday ishlaydi?</summary>
+        <div class="yordam__ich">
+          <p>Foydalanuvchi javob bergach tizim uchta o'q bo'yicha ball hisoblaydi va eng yuqorisini oladi.
+             So'ng <b>shu yo'nalishga tegishli</b> videolardan <b>shartlari bajarilganlari</b> tanlanadi.
+             Ular ichidan <b>ustunligi eng katta</b>si g'olib bo'ladi.</p>
+          <p><b>Yo'nalish</b> — video qaysi o'q g'olib bo'lganda ishtirok etadi.
+             "Istalgan" desangiz — har doim ishtirok etadi.</p>
+          <p><b>Shart</b> — masalan "aniq ≥ 4" degani: foydalanuvchi ism/raqam/sana bilan bog'liq
+             javoblardan kamida 4 ball to'plagan bo'lsa.</p>
+          <p><b>Ustunlik</b> — katta raqam kuchliroq. Shartli videolarga kattaroq (masalan 20),
+             umumiy videolarga kichikroq (masalan 10) qo'ying.</p>
+          <p><b>Zaxira</b> — hech qaysi qoida mos kelmasa shu video beriladi. Bittasi bo'lishi shart.</p>
+        </div>
+      </details>
+
+      <div id="videolar"></div>
+      <button class="btn btn--qosh" id="video-qosh">+ Yangi video qo'shish</button>
+
+      <div class="saqlash">
+        <button class="btn btn--primary" id="save-videolar">SAQLASH</button>
+        <span class="saqlash__holat" id="holat-videolar"></span>
+      </div>
+    </section>
+
+    <!-- ---------------- MATNLAR ---------------- -->
+    <section class="tabpane" id="pane-matnlar">
+      <div class="head">
+        <div>
+          <h2>Sayt matnlari</h2>
+          <p class="muted">Kirish sahifasi, savol ekrani, forma va natija sahifasidagi barcha yozuvlar.</p>
+        </div>
+      </div>
+
+      <div id="matnlar"></div>
+
+      <h3 class="bolim">Natija sahifasidagi diagnostika matnlari</h3>
+      <p class="muted" style="margin-bottom:14px">Foydalanuvchining unutuvchanlik darajasiga qarab shu matnlardan biri chiqadi.
+         "Chegara" — necha foizgacha shu matn ishlatilishi.</p>
+      <div id="darajalar"></div>
+
+      <div class="saqlash">
+        <button class="btn btn--primary" id="save-matnlar">SAQLASH</button>
+        <span class="saqlash__holat" id="holat-matnlar"></span>
+      </div>
+    </section>
+
+    <!-- ---------------- DIZAYN ---------------- -->
+    <section class="tabpane" id="pane-dizayn">
+      <div class="head">
+        <div>
+          <h2>Dizayn</h2>
+          <p class="muted">Saytning ranglari va shakli. O'zgartirib saqlagach saytni yangilab ko'ring.</p>
+        </div>
+        <button class="btn" id="dizayn-tiklash">Standart ranglarga qaytarish</button>
+      </div>
+
+      <div class="mavzu-tanlov">
+        <button class="mavzu-tanlov__tugma mavzu-tanlov__tugma--faol" data-palitra="qorongi">🌙 Qorong'i mavzu</button>
+        <button class="mavzu-tanlov__tugma" data-palitra="yorug">☀️ Yorug' mavzu</button>
+      </div>
+      <p class="muted" style="margin-bottom:16px">Sayt foydalanuvchining telefoni yoki brauzeri qaysi rejimda
+         bo'lsa, o'shanga moslashadi. Ikkala palitrani ham sozlab qo'ying — foydalanuvchi
+         saytdagi tugma orqali ham almashtira oladi.</p>
+
+      <div id="dizayn"></div>
+
+      <div class="saqlash">
+        <button class="btn btn--primary" id="save-dizayn">SAQLASH</button>
+        <span class="saqlash__holat" id="holat-dizayn"></span>
+      </div>
+    </section>
+
+    <!-- ---------------- STATISTIKA ---------------- -->
+    <section class="tabpane" id="pane-statistika">
+      <div class="head">
+        <div>
+          <h2>Statistika</h2>
+          <p class="muted">Testni to'liq tugatib, ma'lumotlarini qoldirganlar.</p>
+        </div>
+        <div class="head__amallar">
+          <button class="btn" id="stat-yangila">↻ Yangilash</button>
+          <button class="btn" id="csv">⬇ Excel (CSV)</button>
+        </div>
+      </div>
+
+      <div class="kartalar" id="kartalar"></div>
+
+      <h3 class="bolim">Voronka — odamlar qayerda to'xtayapti</h3>
+      <div class="davr">
+        <button class="davr__tugma davr__tugma--faol" data-davr="hammasi">Hammasi</button>
+        <button class="davr__tugma" data-davr="hafta">Oxirgi 7 kun</button>
+        <button class="davr__tugma" data-davr="bugun">Bugun</button>
+      </div>
+      <div id="voronka"></div>
+
+      <h3 class="bolim">Videolar bo'yicha</h3>
+      <div id="video-stat"></div>
+
+      <h3 class="bolim">Darajalar bo'yicha</h3>
+      <div id="daraja-stat"></div>
+
+      <h3 class="bolim">Oxirgi 30 ta</h3>
+      <div class="jadval-wrap"><table class="jadval" id="oxirgilar"></table></div>
+    </section>
+
+    <!-- ---------------- ADMINLAR ---------------- -->
+    <section class="tabpane" id="pane-adminlar">
+      <div class="head">
+        <div>
+          <h2>Adminlar</h2>
+          <p class="muted">Bosh admin yangi admin qo'sha oladi va parollarini almashtira oladi.
+             Oddiy admin faqat sayt sozlamalarini tahrirlaydi.</p>
+        </div>
+      </div>
+
+      <div class="jadval-wrap"><table class="jadval" id="adminlar"></table></div>
+
+      <div id="admin-qosh-blok" hidden>
+        <h3 class="bolim">Yangi admin qo'shish</h3>
+        <div class="karta">
+          <div class="qatorlar">
+            <div class="qator">
+              <label class="qator__label">Login</label>
+              <input class="input" id="yangi-login" placeholder="masalan: sohibjon" />
+            </div>
+            <div class="qator">
+              <label class="qator__label">Parol</label>
+              <input class="input" id="yangi-parol" placeholder="kamida 8 belgi, harf va raqam" />
+            </div>
+            <div class="qator">
+              <label class="qator__label">Rol</label>
+              <select class="input" id="yangi-rol">
+                <option value="admin">Admin — sozlamalarni tahrirlaydi</option>
+                <option value="bosh">Bosh admin — adminlarni ham boshqaradi</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:14px;display:flex;align-items:center;gap:14px">
+            <button class="btn btn--primary" id="admin-qosh" style="width:auto">QO'SHISH</button>
+            <span class="saqlash__holat" id="holat-adminlar"></span>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="bolim">Parolimni o'zgartirish</h3>
+      <div class="karta">
+        <div class="qatorlar">
+          <div class="qator">
+            <label class="qator__label">Joriy parol</label>
+            <input class="input" id="eski-parol" type="password" autocomplete="current-password" />
+          </div>
+          <div class="qator">
+            <label class="qator__label">Yangi parol</label>
+            <input class="input" id="yangi-parolim" type="password" autocomplete="new-password" />
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;align-items:center;gap:14px">
+          <button class="btn btn--primary" id="parol-ozgartir" style="width:auto">O'ZGARTIRISH</button>
+          <span class="saqlash__holat" id="holat-parol"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- TARIX ---------------- -->
+    <section class="tabpane" id="pane-tarix">
+      <div class="head">
+        <div>
+          <h2>Amallar tarixi</h2>
+          <p class="muted">Qaysi admin qachon nimani o'zgartirgani. Oxirgi 300 ta amal ko'rsatiladi.</p>
+        </div>
+        <button class="btn" id="tarix-yangila">Yangilash</button>
+      </div>
+      <div id="tarix"></div>
+    </section>
+
+  </div>
+
+  <script src="/admin.js"></script>
+</body>
+</html>
