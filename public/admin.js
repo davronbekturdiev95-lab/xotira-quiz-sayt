@@ -60,25 +60,78 @@
   }
 
   /* ================= KIRISH ================= */
+  function loginXato(matn) {
+    const e = $('login-err');
+    e.textContent = matn;
+    e.classList.add('err--korinsin');
+  }
+
   $('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('login-err').textContent = '';
-    $('login-btn').disabled = true;
+    $('login-err').classList.remove('err--korinsin');
+
+    const login = $('login-name').value.trim();
+    const parol = $('login-pass').value;
+
+    if (!login || !parol) {
+      loginXato(!login ? 'Loginni kiriting' : 'Parolni kiriting');
+      (!login ? $('login-name') : $('login-pass')).focus();
+      return;
+    }
+
+    const tugma = $('login-btn');
+    const eskiMatn = tugma.textContent;
+    tugma.disabled = true;
+    tugma.textContent = 'TEKSHIRILMOQDA...';
+
+    // Server javob bermay qolsa ham tugma abadiy o'chib qolmasin
+    const uzgich = new AbortController();
+    const taymer = setTimeout(() => uzgich.abort(), 12000);
+
     try {
       const r = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ login: $('login-name').value, parol: $('login-pass').value })
+        body: JSON.stringify({ login, parol }),
+        signal: uzgich.signal
       });
-      const d = await r.json();
-      $('login-btn').disabled = false;
-      if (!d.ok) { $('login-err').textContent = d.error || 'Xatolik'; return; }
+
+      let d;
+      try {
+        d = await r.json();
+      } catch (_) {
+        loginXato('Server tushunarsiz javob qaytardi (kod ' + r.status + ')');
+        return;
+      }
+
+      if (!d.ok) {
+        loginXato(d.error || 'Xatolik');
+        $('login-pass').select();
+        return;
+      }
+
+      // Kirish o'tdi — endi ma'lumotlarni yuklaymiz
       $('login-pass').value = '';
+      try {
+        await yukla();
+      } catch (_) {
+        loginXato('Kirdingiz, lekin ma\'lumot yuklanmadi. Sahifani yangilang (Ctrl+F5). ' +
+                  'Takrorlansa — brauzerda cookie ruxsati o\'chiq bo\'lishi mumkin.');
+        return;
+      }
       panelKorsat();
-      await yukla();
-    } catch (_) {
-      $('login-btn').disabled = false;
-      $('login-err').textContent = 'Serverga ulanib bo\'lmadi';
+
+    } catch (xato) {
+      if (xato && xato.name === 'AbortError') {
+        loginXato('Server javob bermadi. Internetni tekshirib, qayta urining.');
+      } else {
+        loginXato('Serverga ulanib bo\'lmadi. Sayt ishlab turibdimi?');
+      }
+    } finally {
+      clearTimeout(taymer);
+      tugma.disabled = false;                 // har qanday holatda ham tugma tirik qoladi
+      tugma.textContent = eskiMatn;
     }
   });
 
@@ -103,7 +156,7 @@
   /* ================= YUKLASH ================= */
   async function yukla() {
     const d = await api('/api/admin/config');
-    if (!d.ok) return;
+    if (!d.ok) throw new Error(d.error || 'Malumot yuklanmadi');
     CONFIG = d.config;
     USER = d.user;
     OQLAR = d.oqlar;

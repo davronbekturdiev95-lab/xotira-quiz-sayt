@@ -620,3 +620,14 @@ select.input { cursor: pointer; }
   .davr__tugma { flex: 1; padding: 7px 6px; font-size: 12.5px; }
   .qadam__son { margin-left: 0; }
 }
+
+/* Kirish xatosi — ko'rinarli bo'lsin */
+.err--korinsin {
+  background: color-mix(in srgb, var(--qizil) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--qizil) 40%, transparent);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: left;
+}
