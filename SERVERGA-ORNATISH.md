@@ -6,6 +6,37 @@ Ma'lumotlar bazasi (MySQL, Postgres) **kerak emas** — hammasi fayllarda saqlan
 
 ---
 
+## Sudo'siz foydalanuvchi bor bo'lsa (tavsiya etilgan yo'l)
+
+Ilova oddiy foydalanuvchi ostida ishlaydi, root esa **faqat Nginx uchun bir marta** kerak.
+
+**1. Foydalanuvchi (sudo kerak emas):**
+```bash
+git clone https://github.com/davronbekturdiev95-lab/xotira-quiz-sayt.git
+cd xotira-quiz-sayt
+cp .env.example .env        # ADMIN_PAROL yozing, HOST=127.0.0.1 qo'ying
+bash deploy/ishga-tushir.sh start
+bash deploy/ishga-tushir.sh cron     # server yoqilganda avtomatik ishga tushadi
+```
+Node.js tizimda bo'lmasa `~/.local/node` ga o'rnatiladi (skript o'sha joydan qidiradi).
+
+**2. Server egasi (root, bir marta):**
+```bash
+sudo bash /home/<foydalanuvchi>/xotira-quiz-sayt/deploy/root-qism.sh quiz.domen.uz
+```
+Nginx o'rnatiladi va domen `127.0.0.1:3000` ga ulanadi. Ilova fayllariga tegilmaydi.
+Cloudflare ishlatilsa: **SSL/TLS → Flexible** (yoki pochta berib Let's Encrypt oling → Full (strict)).
+
+**Kundalik boshqaruv (sudo kerak emas):**
+```bash
+bash deploy/ishga-tushir.sh status     # holati
+bash deploy/ishga-tushir.sh restart    # qayta ishga tushirish
+bash deploy/ishga-tushir.sh log        # loglar
+git pull && bash deploy/ishga-tushir.sh restart   # yangilash
+```
+
+---
+
 ## Talablar
 
 | Nima | Versiya |
