@@ -21,6 +21,7 @@ const { DAVLATLAR, UZ_OPERATORLAR, davlatTop } = require('./shared/davlatlar.js'
 loadEnvFile();
 
 const PORT = Number(process.env.PORT || 3000);
+const HOST = process.env.HOST || '';
 const SHEETS_URL = process.env.SHEETS_URL || '';
 const SHEETS_SECRET = process.env.SHEETS_SECRET || '';
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -456,8 +457,16 @@ function json(res, code, obj, headers) {
   res.end(JSON.stringify(obj));
 }
 
+/**
+ * Mijozning haqiqiy IP manzili.
+ * X-Real-IP — bizning Nginx qo'yadi (Cloudflare IP'larini tekshirib bo'lgach),
+ * shuning uchun unga ishonsa bo'ladi. X-Forwarded-For ni mijoz o'zi soxtalashtira oladi.
+ */
 function ipOl(req) {
-  return (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || '';
+  return String(req.headers['x-real-ip'] || '').trim()
+    || String(req.headers['cf-connecting-ip'] || '').trim()
+    || (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
+    || req.socket.remoteAddress || '';
 }
 
 function httpsMi(req) {
@@ -769,10 +778,14 @@ function bolimNomi(bolim) {
   })[bolim] || 'Sozlamalarni o\'zgartirdi';
 }
 
-server.listen(PORT, () => {
-  console.log(`🌐 Sayt:  http://localhost:${PORT}`);
-  console.log(`🔐 Admin: http://localhost:${PORT}/admin`);
-});
+// HOST=127.0.0.1 — faqat server ichidan (Nginx orqali) ochiladi.
+// Bo'sh qolsa barcha tarmoq interfeyslarida tinglaydi (kompyuterda sinash uchun).
+const ishgaTushdi = () => {
+  console.log(`🌐 Sayt:  http://${HOST || 'localhost'}:${PORT}`);
+  console.log(`🔐 Admin: http://${HOST || 'localhost'}:${PORT}/admin`);
+};
+if (HOST) server.listen(PORT, HOST, ishgaTushdi);
+else server.listen(PORT, ishgaTushdi);
 
 /* --------------------------------------------------------------- .env o'qish */
 function loadEnvFile() {
