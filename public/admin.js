@@ -783,6 +783,8 @@
       dIdish.appendChild(bar(k, foiz, son + ' ta · ' + foiz + '%'));
     });
 
+    amoChiz(s.amo);
+
     const jadval = $('oxirgilar');
     jadval.innerHTML = '';
     if (!s.oxirgilar.length) {
@@ -874,6 +876,55 @@
   }
 
   $('csv').addEventListener('click', () => { window.location.href = '/api/admin/csv'; });
+
+  /* ---------------- amoCRM ---------------- */
+  function amoChiz(a) {
+    const idish = $('amo-holat');
+    idish.innerHTML = '';
+    if (!a) return;
+
+    if (!a.yoqilgan) {
+      idish.appendChild(h('div', { class: 'muted' },
+        "amoCRM ulanmagan. Ulash uchun serverdagi .env fayliga AMO_DOMEN va AMO_TOKEN yozilishi kerak."));
+      return;
+    }
+
+    const qator = (nom, qiymat, klass) =>
+      h('div', { class: 'amo-qator' },
+        h('span', { class: 'amo-qator__nom', text: nom }),
+        h('span', { class: klass || '', text: String(qiymat) }));
+
+    idish.appendChild(qator('Hisob:', a.domen));
+    idish.appendChild(qator('Yuborilgan (server yoqilgandan beri):', a.yuborilgan));
+    idish.appendChild(qator('Navbatda kutayotgan:', a.navbatda,
+      a.navbatda > 0 ? 'amo-ogoh' : ''));
+
+    if (a.oxirgiXato) {
+      idish.appendChild(h('div', { class: 'amo-xato' },
+        h('b', { text: 'Oxirgi xato: ' }),
+        h('span', { text: a.oxirgiXato.xabar.slice(0, 200) })));
+    }
+  }
+
+  $('amo-tekshir').addEventListener('click', async () => {
+    holat('holat-amo', 'Tekshirilmoqda...');
+    const d = await api('/api/admin/amo-tekshir');
+    if (!d.ok) return holat('holat-amo', 'Xatolik', 'err');
+    if (d.natija.ok) {
+      holat('holat-amo', '✓ Ulanish ishlayapti — hisob: ' + (d.natija.hisob || d.natija.id), 'ok');
+    } else {
+      holat('holat-amo', '✗ ' + d.natija.xato, 'err');
+    }
+    amoChiz(d.holat);
+  });
+
+  $('amo-navbat').addEventListener('click', async () => {
+    holat('holat-amo', 'Yuborilmoqda...');
+    const d = await api('/api/admin/amo-navbat', { method: 'POST' });
+    if (!d.ok) return holat('holat-amo', 'Xatolik', 'err');
+    amoChiz(d.holat);
+    holat('holat-amo', d.holat.navbatda ? ('Navbatda yana ' + d.holat.navbatda + ' ta qoldi') : '✓ Navbat bo\'shadi', d.holat.navbatda ? 'err' : 'ok');
+  });
 
   /* ============================================================
      ADMINLAR

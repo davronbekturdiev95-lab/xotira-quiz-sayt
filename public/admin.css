@@ -648,3 +648,16 @@ select.input { cursor: pointer; }
   line-height: 1.45;
   text-align: left;
 }
+
+/* ---------------- amoCRM ---------------- */
+.amo-qator { display: flex; gap: 10px; padding: 6px 0; font-size: 13.5px; flex-wrap: wrap; }
+.amo-qator__nom { color: var(--muted); min-width: 220px; }
+.amo-ogoh { color: var(--qizil); font-weight: 700; }
+.amo-xato {
+  margin-top: 10px; padding: 10px 12px;
+  background: color-mix(in srgb, var(--qizil) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--qizil) 35%, transparent);
+  border-radius: 10px; font-size: 12.5px; line-height: 1.5;
+  word-break: break-word;
+}
+@media (max-width: 640px) { .amo-qator__nom { min-width: 0; width: 100%; } }

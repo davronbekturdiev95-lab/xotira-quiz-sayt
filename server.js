@@ -14,6 +14,7 @@ const path = require('path');
 const store = require('./lib/store.js');
 const auth = require('./lib/auth.js');
 const quiz = require('./lib/quiz.js');
+const amo = require('./lib/amo.js');
 const { OQLAR, BELGILAR, RANG_NOMLARI, SHAKL_NOMLARI } = require('./shared/defaults.js');
 const { DAVLATLAR, UZ_OPERATORLAR, davlatTop } = require('./shared/davlatlar.js');
 
@@ -227,6 +228,7 @@ function statistika() {
   }
 
   return {
+    amo: amo.holat(),
     jami: qatorlar.length,
     bugun: qatorlar.filter((r) => (r.vaqt || '').slice(0, 10) === bugun).length,
     hafta: qatorlar.filter((r) => (r.vaqt || '').slice(0, 10) >= hafta).length,
@@ -257,8 +259,20 @@ function csvYarat() {
     return /[",\n;]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   };
 
+  /* Excel "+998..." ni formula deb o'ylab raqamga aylantirib yuboradi
+     (9,98933E+11 bo'lib ketadi). ="..." shakli uni matn sifatida ushlab turadi. */
+  const matnQil = (v) => {
+    const s = v === undefined || v === null ? '' : String(v);
+    if (!s) return '';
+    return '="' + s.replace(/"/g, '""') + '"';
+  };
+
+  const MATN_USTUNLAR = new Set(['telefon']);
+
   const satrlar = [ustunlar.join(';')];
-  qatorlar.forEach((r) => satrlar.push(ustunlar.map((u) => q(r[u])).join(';')));
+  qatorlar.forEach((r) => {
+    satrlar.push(ustunlar.map((u) => (MATN_USTUNLAR.has(u) ? matnQil(r[u]) : q(r[u]))).join(';'));
+  });
   return '﻿' + satrlar.join('\n');
 }
 
@@ -507,6 +521,7 @@ const server = http.createServer(async (req, res) => {
 
       store.natijaYoz(qator);
       sheetsGaYubor(qator);
+      amo.yubor(qator);   // xato bo'lsa navbatga tushadi, natijaga ta'sir qilmaydi
 
       return json(res, 200, {
         ok: true,
@@ -620,6 +635,18 @@ const server = http.createServer(async (req, res) => {
         });
 
         return json(res, 200, { ok: true, config: natija.config, ozgarishlar: farqlar.length });
+      }
+
+      // --- amoCRM ulanishini tekshirish ---
+      if (req.method === 'GET' && yol === '/api/admin/amo-tekshir') {
+        const natija = await amo.tekshir();
+        return json(res, 200, { ok: true, natija, holat: amo.holat() });
+      }
+
+      // --- amoCRM navbatini hoziroq yuborish ---
+      if (req.method === 'POST' && yol === '/api/admin/amo-navbat') {
+        await amo.navbatniYubor();
+        return json(res, 200, { ok: true, holat: amo.holat() });
       }
 
       // --- standart dizayn (tiklash uchun) ---
@@ -780,6 +807,8 @@ function bolimNomi(bolim) {
 
 // HOST=127.0.0.1 — faqat server ichidan (Nginx orqali) ochiladi.
 // Bo'sh qolsa barcha tarmoq interfeyslarida tinglaydi (kompyuterda sinash uchun).
+amo.navbatniBoshla();
+
 const ishgaTushdi = () => {
   console.log(`🌐 Sayt:  http://${HOST || 'localhost'}:${PORT}`);
   console.log(`🔐 Admin: http://${HOST || 'localhost'}:${PORT}/admin`);

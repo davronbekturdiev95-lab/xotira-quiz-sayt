@@ -117,6 +117,16 @@ function varaqniOl() {
     varaq.setColumnWidth(1, 140);
   }
 
+  // Telefon ustuni MATN bo'lishi shart — aks holda Google Sheets "+998..." ni
+  // formula deb o'ylab, raqamga aylantirib yuboradi (9,98933E+11 bo'lib ketadi)
+  for (var i = 0; i < USTUNLAR.length; i++) {
+    if (USTUNLAR[i][0] === 'telefon') {
+      varaq.getRange(1, i + 1, varaq.getMaxRows()).setNumberFormat('@');
+      varaq.setColumnWidth(i + 1, 150);
+      break;
+    }
+  }
+
   return varaq;
 }
 
