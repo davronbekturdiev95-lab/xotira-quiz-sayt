@@ -661,3 +661,29 @@ select.input { cursor: pointer; }
   word-break: break-word;
 }
 @media (max-width: 640px) { .amo-qator__nom { min-width: 0; width: 100%; } }
+
+/* ---------------- Yashirin savol ---------------- */
+.korinish { min-width: 108px; }
+.korinish--yoq,
+.korinish--yoq:hover {
+  background: color-mix(in srgb, var(--qizil) 14%, transparent);
+  color: var(--qizil);
+  border-color: color-mix(in srgb, var(--qizil) 40%, transparent);
+}
+.savol--yashirin { border-style: dashed; }
+.savol--yashirin .savol-matn,
+.savol--yashirin .yosh-belgi,
+.savol--yashirin .variantlar__bosh,
+.savol--yashirin .variantlar,
+.savol--yashirin .btn--qosh { opacity: .45; }
+.yashirin-belgi {
+  flex: none;
+  font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+  color: var(--qizil);
+  background: color-mix(in srgb, var(--qizil) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--qizil) 35%, transparent);
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+@media (max-width: 640px) { .korinish { min-width: 0; } }

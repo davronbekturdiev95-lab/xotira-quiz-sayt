@@ -190,11 +190,19 @@
       variantlarIdish.appendChild(variantQator(v, vi, yoshSavolimi, variantlarIdish));
     });
 
-    const karta = h('div', { class: 'karta savol', 'data-id': savol.id },
+    const karta = h('div', { class: 'karta savol' + (savol.yashirin ? ' savol--yashirin' : ''), 'data-id': savol.id },
       h('div', { class: 'karta__bosh' },
         h('span', { class: 'karta__id', text: String(indeks + 1) }),
+        savol.yashirin ? h('span', { class: 'yashirin-belgi', text: 'Yashirin' }) : null,
         h('input', { class: 'input savol-matn', value: savol.matn || '', placeholder: 'Savol matni' }),
         h('div', { class: 'amallar' },
+          h('button', {
+            class: 'mini korinish' + (savol.yashirin ? ' korinish--yoq' : ''),
+            type: 'button',
+            title: savol.yashirin ? 'Saytda va botda qayta ko\'rsatish' : 'Saytdan va botdan yashirish (o\'chirilmaydi)',
+            text: savol.yashirin ? '🙈 Yashirin' : '👁 Ko\'rinadi',
+            onclick: (e) => korinishAlmashtir(savol.id, indeks, e.currentTarget)
+          }),
           h('button', { class: 'mini', title: 'Yuqoriga', text: '↑', onclick: () => kochir(indeks, -1) }),
           h('button', { class: 'mini', title: 'Pastga', text: '↓', onclick: () => kochir(indeks, 1) }),
           h('button', {
@@ -242,6 +250,60 @@
     );
 
     return karta;
+  }
+
+  /* Bitta tugma: savolni yashirish / ko'rsatish.
+     Serverga faqat shu savolning belgisi yuboriladi — boshqa kartalardagi
+     saqlanmagan tahrirlar joyida qoladi. */
+  async function korinishAlmashtir(savolId, indeks, tugma) {
+    const joriy = (savolId && CONFIG.savollar.find((s) => s.id === savolId)) || CONFIG.savollar[indeks];
+    if (!joriy) return;
+    const yashir = !joriy.yashirin;
+
+    if (yashir && !CONFIG.savollar.some((s) => s !== joriy && !s.yashirin)) {
+      return alert('Kamida bitta savol ko\'rinib turishi kerak');
+    }
+
+    // Hali saqlanmagan yangi savol — faqat shu yerda belgilaymiz, SAQLASH bilan ketadi
+    if (!savolId) {
+      yigSavollar();
+      CONFIG.savollar[indeks].yashirin = yashir;
+      savollarChiz();
+      holat('holat-savollar', 'Yangi savol: o\'zgarish SAQLASH bosilganda kuchga kiradi', 'err');
+      return;
+    }
+
+    tugma.disabled = true;
+    try {
+      const d = await api('/api/admin/savol-korinish', {
+        method: 'POST',
+        body: JSON.stringify({ id: savolId, yashirin: yashir })
+      });
+      if (!d.ok) { holat('holat-savollar', d.error || 'Saqlanmadi', 'err'); return; }
+
+      joriy.yashirin = yashir;
+      if (!yashir) delete joriy.yashirin;
+
+      const karta = tugma.closest('.karta');
+      karta.classList.toggle('savol--yashirin', yashir);
+      tugma.classList.toggle('korinish--yoq', yashir);
+      tugma.textContent = yashir ? '🙈 Yashirin' : '👁 Ko\'rinadi';
+      tugma.title = yashir ? 'Saytda va botda qayta ko\'rsatish' : 'Saytdan va botdan yashirish (o\'chirilmaydi)';
+
+      const eskiBelgi = karta.querySelector('.yashirin-belgi');
+      if (yashir && !eskiBelgi) {
+        karta.querySelector('.karta__id').after(h('span', { class: 'yashirin-belgi', text: 'Yashirin' }));
+      } else if (!yashir && eskiBelgi) {
+        eskiBelgi.remove();
+      }
+
+      const soni = d.korinadigan !== undefined ? ` (saytda ${d.korinadigan} / ${d.jami} ta savol)` : '';
+      holat('holat-savollar', (yashir ? '✓ Savol yashirildi' : '✓ Savol yana ko\'rinadi') + soni, 'ok');
+    } catch (_) {
+      holat('holat-savollar', 'Serverga ulanib bo\'lmadi', 'err');
+    } finally {
+      tugma.disabled = false;
+    }
   }
 
   function variantQator(v, vi, yoshSavolimi, idish) {
@@ -348,7 +410,9 @@
           return v;
         });
 
-      return { id: eski.id, matn: karta.querySelector('.savol-matn').value, variantlar };
+      const yig = { id: eski.id, matn: karta.querySelector('.savol-matn').value, variantlar };
+      if (eski.yashirin) yig.yashirin = true;
+      return yig;
     });
   }
 

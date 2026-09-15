@@ -15,12 +15,13 @@ const rang = {
 };
 
 const config = store.configOl();
+const faol = quiz.faolSavollar(config);   // saytda ko'rinadigan savollar
 let xatolar = 0;
 
 console.log(rang.bosh('SOZLAMALAR'));
-console.log(`Savollar: ${config.savollar.length} ta`);
+console.log(`Savollar: ${config.savollar.length} ta (saytda ko'rinadi: ${faol.length})`);
 console.log(`Videolar: ${config.videolar.length} ta`);
-console.log('Maksimal ballar:', quiz.maksimum(config.savollar));
+console.log('Maksimal ballar:', quiz.maksimum(faol));
 
 /* ---------------- Qoidalarni tekshirish ---------------- */
 console.log(rang.bosh('VIDEO QOIDALARI'));
@@ -43,7 +44,7 @@ config.videolar.forEach((v) => { sanoq[v.id] = 0; });
 
 for (let i = 0; i < N; i++) {
   const javoblar = {};
-  for (const savol of config.savollar) {
+  for (const savol of faol) {
     javoblar[savol.id] = savol.variantlar[Math.floor(Math.random() * savol.variantlar.length)].key;
   }
   const natija = quiz.hisobla(config, javoblar);
@@ -68,13 +69,13 @@ for (const d of config.darajalar) {
 
 /* ---------------- Javob tekshiruvi ---------------- */
 console.log(rang.bosh('JAVOBLARNI TEKSHIRISH'));
-const toliqsiz = quiz.javoblarniTekshir(config.savollar, { [config.savollar[0].id]: 'A' });
+const toliqsiz = quiz.javoblarniTekshir(faol, { [faol[0].id]: 'A' });
 console.log(toliqsiz.xato ? rang.ok('✓ To\'liqsiz javob rad etildi: ' + toliqsiz.xato) : rang.xato('✗ To\'liqsiz javob o\'tib ketdi'));
 if (!toliqsiz.xato) xatolar++;
 
 const notogri = {};
-config.savollar.forEach((s) => { notogri[s.id] = 'Z'; });
-const notogriNatija = quiz.javoblarniTekshir(config.savollar, notogri);
+faol.forEach((s) => { notogri[s.id] = 'Z'; });
+const notogriNatija = quiz.javoblarniTekshir(faol, notogri);
 console.log(notogriNatija.xato ? rang.ok('✓ Noto\'g\'ri variant rad etildi') : rang.xato('✗ Noto\'g\'ri variant o\'tib ketdi'));
 if (!notogriNatija.xato) xatolar++;
 

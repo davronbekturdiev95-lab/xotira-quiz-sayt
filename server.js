@@ -336,8 +336,11 @@ function configTekshir(xom, eski) {
         return chiqish;
       });
 
-      savollar.push({ id, matn: matn.slice(0, 400), variantlar });
+      const chiqSavol = { id, matn: matn.slice(0, 400), variantlar };
+      if (s.yashirin) chiqSavol.yashirin = true;   // SAQLASH da yashirin belgisi yo'qolmasin
+      savollar.push(chiqSavol);
     }
+    if (!savollar.some((s) => !s.yashirin)) return { xato: 'Kamida bitta savol ko\'rinib turishi kerak' };
     yangi.savollar = savollar;
 
     if (xom.yoshSavoli && idlar.has(String(xom.yoshSavoli))) yangi.yoshSavoli = String(xom.yoshSavoli);
@@ -520,7 +523,7 @@ const server = http.createServer(async (req, res) => {
       const telR = telefonTekshir(body.telefon, body.davlat);
       if (telR.xato) return json(res, 400, { ok: false, error: telR.xato });
 
-      const tekshir = quiz.javoblarniTekshir(config.savollar, body.javoblar);
+      const tekshir = quiz.javoblarniTekshir(quiz.faolSavollar(config), body.javoblar);
       if (tekshir.xato) return json(res, 400, { ok: false, error: tekshir.xato });
 
       const natija = quiz.hisobla(config, tekshir.javoblar);
@@ -629,7 +632,7 @@ const server = http.createServer(async (req, res) => {
           belgilar: BELGILAR,
           rangNomlari: RANG_NOMLARI,
           shaklNomlari: SHAKL_NOMLARI,
-          maksimum: quiz.maksimum(store.configOl().savollar)
+          maksimum: quiz.maksimum(quiz.faolSavollar(store.configOl()))
         });
       }
 
@@ -659,6 +662,37 @@ const server = http.createServer(async (req, res) => {
         });
 
         return json(res, 200, { ok: true, config: natija.config, ozgarishlar: farqlar.length });
+      }
+
+      // --- savolni yashirish / ko'rsatish (bitta tugma) ---
+      // Faqat shu savolning belgisi o'zgaradi — boshqa saqlanmagan tahrirlarga tegilmaydi
+      if (req.method === 'POST' && yol === '/api/admin/savol-korinish') {
+        const body = JSON.parse((await tanaOqi(req)) || '{}');
+        const eski = store.configOl();
+        const yangi = JSON.parse(JSON.stringify(eski));
+        const savol = yangi.savollar.find((s) => s.id === String(body.id || ''));
+        if (!savol) return json(res, 404, { ok: false, error: 'Savol topilmadi — avval SAQLASH ni bosing' });
+
+        const yashir = !!body.yashirin;
+        if (yashir && !yangi.savollar.some((s) => s.id !== savol.id && !s.yashirin)) {
+          return json(res, 400, { ok: false, error: 'Kamida bitta savol ko\'rinib turishi kerak' });
+        }
+        if (yashir) savol.yashirin = true; else delete savol.yashirin;
+
+        const farqlar = store.farqla(eski, yangi);
+        if (!farqlar.length) return json(res, 200, { ok: true, yashirin: yashir });
+
+        store.configSaqla(yangi);
+        store.tarixYoz({
+          login: user.login, rol: user.rol,
+          amal: yashir ? 'Savolni yashirdi' : 'Savolni qayta ko\'rsatdi',
+          tafsilot: farqlar, ip
+        });
+        return json(res, 200, {
+          ok: true, yashirin: yashir,
+          korinadigan: yangi.savollar.filter((s) => !s.yashirin).length,
+          jami: yangi.savollar.length
+        });
       }
 
       // --- amoCRM ulanishini tekshirish ---
