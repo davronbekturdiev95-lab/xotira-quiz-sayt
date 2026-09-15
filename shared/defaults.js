@@ -283,7 +283,11 @@ const MATNLAR = {
   natija_tugma: 'BEPUL VIDEONI KO\'RISH',
 
   xato_sarlavha: 'XATOLIK',
-  xato_tugma: 'QAYTA URINISH'
+  xato_tugma: 'QAYTA URINISH',
+
+  bot_salom: 'Assalomu alaykum, {ism}! 👋\n\nBu — xotira va diqqat testi. 15 ta qisqa savol, atigi 2 daqiqa.\n\nJavoblaringiz asosida sizga aynan mos keladigan bepul videodarslik tanlanadi.\n\nBoshlash uchun pastdagi tugmani bosing 👇',
+  bot_tugma: '🧠 Testni boshlash',
+  tg_raqam_tugma: '📱 Telegramdagi raqamimni yuborish'
 };
 
 /* ----------------------------------------------------------------- DIZAYN */

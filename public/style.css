@@ -371,3 +371,19 @@ body.is-result {
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ---------------- Telegram ichida: raqamni ulashish ---------------- */
+.tg-raqam {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 13px 16px;
+  border-radius: 16px;
+  border: 1px dashed color-mix(in srgb, var(--tugma-rang) 60%, transparent);
+  background: color-mix(in srgb, var(--tugma-rang) 10%, transparent);
+  color: var(--tugma-rang);
+  font-family: inherit; font-size: 15px; font-weight: 600;
+  cursor: pointer;
+}
+.tg-raqam:active { transform: scale(.98); }
+.tg-raqam[hidden] { display: none; }

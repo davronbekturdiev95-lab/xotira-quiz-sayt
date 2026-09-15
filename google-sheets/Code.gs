@@ -28,6 +28,8 @@ var USTUNLAR = [
   ['ism', 'Ism'],
   ['telefon', 'Telefon'],
   ['davlat', 'Davlat'],
+  ['kanal', 'Kanal'],
+  ['tg_username', 'Telegram'],
   ['video_id', 'Video'],
   ['video_nomi', 'Video nomi'],
   ['havola', 'Havola'],

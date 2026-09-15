@@ -554,7 +554,11 @@
     natija_tugma: ['Natija: tugma yozuvi', 'input'],
 
     xato_sarlavha: ['Xatolik: sarlavha', 'input'],
-    xato_tugma: ['Xatolik: tugma yozuvi', 'input']
+    xato_tugma: ['Xatolik: tugma yozuvi', 'input'],
+
+    bot_salom: ['Bot: /start bosganda chiqadigan xabar ({ism} — foydalanuvchi ismi bilan almashadi)', 'area'],
+    bot_tugma: ['Bot: testni ochish tugmasi', 'input'],
+    tg_raqam_tugma: ['Telegram ichida: raqamni ulashish tugmasi', 'input']
   };
 
   function matnlarChiz() {
@@ -568,7 +572,8 @@
       'Ism / telefon formasi': ['lead_belgi', 'lead_sarlavha', 'lead_matn', 'lead_ism_label', 'lead_ism_placeholder', 'lead_tel_label', 'lead_tugma', 'lead_izoh'],
       'Yuklanish ekrani': ['yuklanish_1', 'yuklanish_2', 'yuklanish_3'],
       'Natija sahifasi': ['natija_sarlavha', 'natija_tugma'],
-      'Xatolik ekrani': ['xato_sarlavha', 'xato_tugma']
+      'Xatolik ekrani': ['xato_sarlavha', 'xato_tugma'],
+      'Telegram bot': ['bot_salom', 'bot_tugma', 'tg_raqam_tugma']
     };
 
     for (const guruh of Object.keys(guruhlar)) {
@@ -756,7 +761,9 @@
     voronkaChiz();
 
     $('kartalar').innerHTML = '';
-    [[s.jami, 'Jami tugatgan'], [s.bugun, 'Bugun'], [s.hafta, 'Oxirgi 7 kun']].forEach(([son, nom]) => {
+    const kan = s.kanallar || { sayt: 0, telegram: 0 };
+    [[s.jami, 'Jami tugatgan'], [s.bugun, 'Bugun'], [s.hafta, 'Oxirgi 7 kun'],
+     [kan.sayt, 'Saytdan'], [kan.telegram, 'Telegram botdan']].forEach(([son, nom]) => {
       $('kartalar').appendChild(h('div', { class: 'stat' },
         h('div', { class: 'stat__son', text: String(son) }),
         h('div', { class: 'stat__nom', text: nom })
@@ -791,12 +798,13 @@
       jadval.appendChild(h('tr', null, h('td', { class: 'muted', text: 'Hozircha hech kim testni tugatmagan' })));
     } else {
       jadval.appendChild(h('tr', null,
-        ...['Vaqt', 'Ism', 'Telefon', 'Video', 'Daraja'].map((x) => h('th', { text: x }))));
+        ...['Vaqt', 'Ism', 'Telefon', 'Kanal', 'Video', 'Daraja'].map((x) => h('th', { text: x }))));
       s.oxirgilar.forEach((r) => {
         jadval.appendChild(h('tr', null,
           h('td', { text: vaqt(r.vaqt) }),
           h('td', { text: r.ism || '' }),
           h('td', { text: r.telefon || '' }),
+          h('td', { text: r.kanal === 'telegram' ? ('Telegram' + (r.tg_username ? ' ' + r.tg_username : '')) : 'Sayt' }),
           h('td', { text: (r.video_id || '').toUpperCase() }),
           h('td', { text: r.daraja || '' })
         ));

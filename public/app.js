@@ -9,6 +9,17 @@
   var SAVOLLAR = S.savollar || [];
   var M = S.matnlar || {};
 
+  /* ---------------- TELEGRAM MINI APP ----------------
+     Telegram ichida ochilganda manzilga #tgWebAppData=... qo'shiladi.
+     Oddiy saytda Telegram skripti umuman yuklanmaydi. */
+  var TG_MUHIT = /tgWebApp/.test(String(location.hash) + String(location.search)) ||
+                 typeof window.TelegramWebviewProxy !== 'undefined';
+
+  function TG() {
+    var w = window.Telegram && window.Telegram.WebApp;
+    return w && w.initData ? w : null;
+  }
+
   var state = { index: 0, javoblar: {}, tanlangan: null, havola: null, yuborilmoqda: false };
 
   function id(x) { return document.getElementById(x); }
@@ -20,7 +31,7 @@
     btnVideo: id('btn-video'), btnRetry: id('btn-retry'), btnLead: id('btn-lead'),
     leadForm: id('lead-form'), inpIsm: id('inp-ism'), inpTel: id('inp-tel'),
     inpDavlat: id('inp-davlat'), mavzuTugma: id('mavzu-tugma'), mavzuBelgi: id('mavzu-belgi'),
-    leadError: id('lead-error'),
+    leadError: id('lead-error'), btnTgRaqam: id('btn-tg-raqam'),
     resDaraja: id('res-daraja'), resVideo: id('res-video'),
     errText: id('err-text'), loadingText: id('loading-text')
   };
@@ -100,6 +111,7 @@
     var malumot = JSON.stringify({
       sessiya: SESSIYA,
       hodisa: nom,
+      kanal: TG() ? 'telegram' : 'sayt',
       manba: document.referrer || '',
       utm: window.location.search || ''
     });
@@ -120,6 +132,8 @@
 
   /* ---------------- Ekranlar ---------------- */
   function ekran(x) {
+    var tgE = TG();
+    if (tgE && tgE.BackButton) { try { tgE.BackButton.hide(); } catch (e) {} }
     var hammasi = document.querySelectorAll('.screen');
     for (var i = 0; i < hammasi.length; i++) hammasi[i].classList.remove('screen--active');
     id(x).classList.add('screen--active');
@@ -155,6 +169,10 @@
     });
 
     el.btnBack.hidden = state.index === 0;
+    var tgB = TG();
+    if (tgB && tgB.BackButton) {
+      try { if (state.index > 0) tgB.BackButton.show(); else tgB.BackButton.hide(); } catch (e) {}
+    }
     el.btnOk.disabled = !state.tanlangan;
     el.btnOk.textContent = (state.index === SAVOLLAR.length - 1)
       ? (M.savol_tugma_oxirgi || 'YAKUNLASH')
@@ -173,6 +191,8 @@
   }
 
   function tanla(key) {
+    var tgH = TG();
+    if (tgH && tgH.HapticFeedback) { try { tgH.HapticFeedback.selectionChanged(); } catch (e) {} }
     var savol = SAVOLLAR[state.index];
     state.tanlangan = key;
     state.javoblar[savol.id] = key;
@@ -223,7 +243,16 @@
     el.bar.style.width = Math.round((SAVOLLAR.length / (SAVOLLAR.length + 1)) * 100) + '%';
     hodisa('formaga_yetdi');
     ekran('screen-lead');
-    setTimeout(function () { el.inpIsm.focus(); }, 250);
+    var tgL = TG();
+    if (tgL) {
+      var u = tgL.initDataUnsafe && tgL.initDataUnsafe.user;
+      if (u && u.first_name && !el.inpIsm.value) el.inpIsm.value = u.first_name;
+      if (typeof tgL.requestContact === 'function' && tgL.isVersionAtLeast && tgL.isVersionAtLeast('6.9')) {
+        el.btnTgRaqam.hidden = false;
+      }
+    } else {
+      setTimeout(function () { el.inpIsm.focus(); }, 250);
+    }
   }
 
   /* ---------------- MAVZU (light / dark) ---------------- */
@@ -250,6 +279,12 @@
     var meta = document.getElementById('theme-color');
     var fon = (S.fon || {});
     if (meta) meta.setAttribute('content', qorongimi ? (fon.qorongi || '#0b1220') : (fon.yorug || '#ffffff'));
+    var tgM = TG();
+    if (tgM) {
+      var rang = qorongimi ? (fon.qorongi || '#0b1220') : (fon.yorug || '#ffffff');
+      try { tgM.setHeaderColor(rang); tgM.setBackgroundColor(rang); } catch (e) {}
+      try { if (tgM.setBottomBarColor) tgM.setBottomBarColor(rang); } catch (e) {}
+    }
   }
 
   el.mavzuTugma.addEventListener('click', function () {
@@ -423,6 +458,7 @@
         telefon: toliqRaqam(),
         davlat: davlat.kod,
         javoblar: state.javoblar,
+        initData: TG() ? TG().initData : '',
         sessiya: SESSIYA,
         manba: document.referrer || '',
         utm: window.location.search || ''
@@ -463,6 +499,18 @@
     el.resDaraja.textContent = d.darajaMatn;
     el.resVideo.textContent = d.videoMatn;
     el.btnVideo.setAttribute('href', d.havola);
+    var tgV = TG();
+    if (tgV) {
+      el.btnVideo.onclick = function (ev) {
+        ev.preventDefault();
+        var h = state.havola || '';
+        try {
+          if (/^https:\/\/t\.me\//i.test(h)) tgV.openTelegramLink(h);
+          else tgV.openLink(h);
+        } catch (x) { window.location.href = h; }
+        setTimeout(function () { try { tgV.close(); } catch (x) {} }, 300);
+      };
+    }
     document.body.classList.add('is-result');
     el.bar.style.width = '100%';
     ekran('screen-result');
@@ -488,12 +536,83 @@
     }
   });
 
+  /* ---------------- Telegram: raqamni ulashish ---------------- */
+  function raqamniQoy(xom) {
+    var raqam = String(xom || '').replace(/\D/g, '');
+    if (!raqam) return;
+
+    // Eng uzun mos keladigan davlat kodini topamiz
+    var topildi = null;
+    for (var i = 0; i < DAVLATLAR.length; i++) {
+      var d = DAVLATLAR[i];
+      if (!d.dial || raqam.indexOf(d.dial) !== 0) continue;
+      if (!topildi || d.dial.length > topildi.dial.length) topildi = d;
+    }
+    if (!topildi) {
+      for (var j = 0; j < DAVLATLAR.length; j++) if (DAVLATLAR[j].kod === 'XX') topildi = DAVLATLAR[j];
+    }
+    if (!topildi) return;
+
+    davlat = topildi;
+    el.inpDavlat.value = topildi.kod;
+    namunaQoy();
+    var milliy = topildi.dial ? raqam.slice(topildi.dial.length) : raqam;
+    el.inpTel.value = guruhla(milliy.slice(0, topildi.uzunlik[1] || 15));
+    el.inpTel.classList.remove('field__input--err');
+    el.leadError.textContent = '';
+  }
+
+  el.btnTgRaqam.addEventListener('click', function () {
+    var tg = TG();
+    if (!tg || typeof tg.requestContact !== 'function') return;
+    tg.requestContact(function (ruxsat, javob) {
+      if (!ruxsat) return;
+      var c = javob && javob.responseUnsafe && javob.responseUnsafe.contact;
+      if (c && c.phone_number) raqamniQoy(c.phone_number);
+    });
+  });
+
+  /* ---------------- Telegram sozlamalari ---------------- */
+  function tgSozla() {
+    var tg = TG();
+    if (!tg) return;
+    try { tg.ready(); tg.expand(); } catch (e) {}
+    try { if (tg.disableVerticalSwipes) tg.disableVerticalSwipes(); } catch (e) {}
+    document.documentElement.classList.add('tg');
+
+    // Foydalanuvchi o'zi tanlamagan bo'lsa — Telegram mavzusiga ergashamiz
+    var tgMavzu = function () {
+      if (!mavzuOl()) mavzuQoy(tg.colorScheme === 'light' ? 'yorug' : 'qorongi', false);
+    };
+    tgMavzu();
+    try { tg.onEvent('themeChanged', tgMavzu); } catch (e) {}
+    try { tg.BackButton.onClick(orqaga); } catch (e) {}
+    el.btnTgRaqam.textContent = M.tg_raqam_tugma || '📱 Telegramdagi raqamimni yuborish';
+  }
+
   /* ---------------- Boshlash ---------------- */
   mavzuQoy(mavzuOl(), false);
-  hodisa('ochildi');
   bayroqShriftiniUla();
   davlatlarniChiz();
   matnlarniQoy();
+
+  function tgTayyor() {
+    tgSozla();
+    hodisa('ochildi');
+  }
+
+  if (TG_MUHIT) {
+    var tgYuklandi = false;
+    var birMarta = function () { if (tgYuklandi) return; tgYuklandi = true; tgTayyor(); };
+    var skript = document.createElement('script');
+    skript.src = 'https://telegram.org/js/telegram-web-app.js';
+    skript.onload = birMarta;
+    skript.onerror = birMarta;
+    document.head.appendChild(skript);
+    setTimeout(birMarta, 4000);   // skript kechiksa ham sayt ishlayversin
+  } else {
+    hodisa('ochildi');
+  }
   if (!SAVOLLAR.length) {
     el.btnStart.disabled = true;
     id('intro-matn').textContent = 'Savollar hali sozlanmagan.';

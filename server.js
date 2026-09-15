@@ -15,6 +15,7 @@ const store = require('./lib/store.js');
 const auth = require('./lib/auth.js');
 const quiz = require('./lib/quiz.js');
 const amo = require('./lib/amo.js');
+const telegram = require('./lib/telegram.js');
 const { OQLAR, BELGILAR, RANG_NOMLARI, SHAKL_NOMLARI } = require('./shared/defaults.js');
 const { DAVLATLAR, UZ_OPERATORLAR, davlatTop } = require('./shared/davlatlar.js');
 
@@ -25,6 +26,8 @@ const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '';
 const SHEETS_URL = process.env.SHEETS_URL || '';
 const SHEETS_SECRET = process.env.SHEETS_SECRET || '';
+const BOT_TOKEN = process.env.BOT_TOKEN || '';
+const SAYT_URL = process.env.SAYT_URL || '';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
 // Birinchi ishga tushirishda bosh adminni yaratamiz
@@ -166,7 +169,10 @@ function natijaQatori(config, lead, javoblar, natija, qoshimcha) {
     ball_diqqat: natija.foiz.diqqat,
     ball_til: natija.foiz.til,
     manba: qoshimcha.manba || '',
-    utm: qoshimcha.utm || ''
+    utm: qoshimcha.utm || '',
+    kanal: qoshimcha.kanal || 'sayt',
+    tg_id: qoshimcha.tg_id || '',
+    tg_username: qoshimcha.tg_username || ''
   }, j);
 }
 
@@ -239,8 +245,14 @@ function statistika() {
     },
     videolar,
     darajalar,
+    kanallar: {
+      sayt: qatorlar.filter((r) => r.kanal !== 'telegram').length,
+      telegram: qatorlar.filter((r) => r.kanal === 'telegram').length
+    },
+    bot: telegram.holat(),
     oxirgilar: qatorlar.slice(-30).reverse().map((r) => ({
-      vaqt: r.vaqt, ism: r.ism, telefon: r.telefon, video_id: r.video_id, daraja: r.daraja
+      vaqt: r.vaqt, ism: r.ism, telefon: r.telefon, video_id: r.video_id, daraja: r.daraja,
+      kanal: r.kanal || 'sayt', tg_username: r.tg_username || ''
     }))
   };
 }
@@ -250,7 +262,7 @@ function csvYarat() {
   const qatorlar = store.natijalarOl();
   if (!qatorlar.length) return '﻿Natijalar yo\'q\n';
 
-  const ustunlar = ['vaqt', 'ism', 'telefon', 'davlat', 'video_id', 'video_nomi', 'havola',
+  const ustunlar = ['vaqt', 'ism', 'telefon', 'davlat', 'kanal', 'tg_username', 'video_id', 'video_nomi', 'havola',
     'daraja', 'daraja_foiz', 'yonalish', 'ball_xotira', 'ball_diqqat', 'ball_til', 'manba', 'utm'];
   config.savollar.forEach((s, i) => ustunlar.push('q' + (i + 1) + '_matn'));
 
@@ -514,14 +526,25 @@ const server = http.createServer(async (req, res) => {
       const natija = quiz.hisobla(config, tekshir.javoblar);
       if (!natija.video) return json(res, 500, { ok: false, error: 'Video sozlanmagan' });
 
+      // Telegram ichidan kelgan bo'lsa — imzoni tekshiramiz (soxtalashtirib bo'lmaydi)
+      const tgUser = body.initData ? telegram.initDataTekshir(body.initData, BOT_TOKEN) : null;
+
       const qator = natijaQatori(config, { ism: ismR.ism, telefon: telR.telefon, davlat: telR.davlat }, tekshir.javoblar, natija, {
         manba: String(body.manba || '').slice(0, 200),
-        utm: String(body.utm || '').slice(0, 300)
+        utm: String(body.utm || '').slice(0, 300),
+        kanal: tgUser ? 'telegram' : 'sayt',
+        tg_id: tgUser ? tgUser.id : '',
+        tg_username: tgUser && tgUser.username ? '@' + tgUser.username : ''
       });
 
       store.natijaYoz(qator);
       sheetsGaYubor(qator);
       amo.yubor(qator);   // xato bo'lsa navbatga tushadi, natijaga ta'sir qilmaydi
+      if (tgUser) {
+        telegram.natijaYubor(tgUser.id, {
+          darajaMatn: natija.darajaMatn, videoMatn: natija.videoMatn, havola: natija.havola
+        });
+      }
 
       return json(res, 200, {
         ok: true,
@@ -545,6 +568,7 @@ const server = http.createServer(async (req, res) => {
             vaqt: new Date().toISOString(),
             sessiya,
             hodisa,
+            kanal: body.kanal === 'telegram' ? 'telegram' : 'sayt',
             manba: String(body.manba || '').slice(0, 200),
             utm: String(body.utm || '').slice(0, 300)
           });
@@ -808,6 +832,12 @@ function bolimNomi(bolim) {
 // HOST=127.0.0.1 — faqat server ichidan (Nginx orqali) ochiladi.
 // Bo'sh qolsa barcha tarmoq interfeyslarida tinglaydi (kompyuterda sinash uchun).
 amo.navbatniBoshla();
+
+if (BOT_TOKEN && SAYT_URL) {
+  telegram.ishgaTushir({ token: BOT_TOKEN, sayt: SAYT_URL, matnlar: () => store.configOl().matnlar });
+} else if (BOT_TOKEN) {
+  console.warn('⚠️  BOT_TOKEN bor, lekin SAYT_URL yo\'q — bot ishga tushmadi (faqat initData tekshiruvi ishlaydi).');
+}
 
 const ishgaTushdi = () => {
   console.log(`🌐 Sayt:  http://${HOST || 'localhost'}:${PORT}`);
