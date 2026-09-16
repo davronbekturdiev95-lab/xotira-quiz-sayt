@@ -186,7 +186,14 @@ const oxirgi = () => yuborilgan[yuborilgan.length - 1];
     assert.strictEqual(Number(oxirgi().tana.chat_id), 333);
   });
 
-  await sinov('video tugmasi tavsiya qilingan videoga olib boradi va bosilishi sanaladi', async () => {
+  await sinov('Telegram havolasi to\'g\'ridan-to\'g\'ri, sayt havolasi esa sanaladigan qilib qo\'yiladi', () => {
+    const tg1 = yuboruvchi.kuzatiladiganUrl(111, { manba: 'sinov' }, 'video:https://t.me/davronturdiev_bot?start=bepuldars10');
+    assert.strictEqual(tg1, 'https://t.me/davronturdiev_bot?start=bepuldars10');
+    assert.strictEqual(yuboruvchi.kuzatiladiganUrl(111, { manba: 'sinov' }, 'tg://resolve?domain=abc'), 'tg://resolve?domain=abc');
+    assert.ok(yuboruvchi.kuzatiladiganUrl(111, { manba: 'sinov' }, 'https://supermiya.uz/kurs').startsWith('https://quiz.example.uz/r/'));
+  });
+
+  await sinov('video tugmasi tavsiya qilingan videoga to\'g\'ridan-to\'g\'ri olib boradi', async () => {
     const r = voronka.saqla({
       nom: 'Video sinovi', trigger: { tur: 'test_tugatdi' }, toxtatish: ['video_bosdi'],
       qadamlar: [{ tur: 'xabar', xabar: { matn: '{video}', tugmalar: [{ matn: 'Ko\'rish', tur: 'video' }] } }]
@@ -197,15 +204,8 @@ const oxirgi = () => yuborilgan[yuborilgan.length - 1];
     const x = oxirgi();
     assert.strictEqual(x.tana.text, CONFIG.videolar.find((v) => v.id === 'v3').nom.replace(/'/g, '\''));
     const url = x.tana.reply_markup.inline_keyboard[0][0].url;
-    assert.ok(url.startsWith('https://quiz.example.uz/r/'));
-    const b1 = yuboruvchi.kodBosildi(url.split('/r/')[1]);
-    const b2 = yuboruvchi.kodBosildi(url.split('/r/')[1]);
-    assert.strictEqual(b1.videomi, true);
-    assert.ok(b1.manzil.includes('bepuldars10'));
-    assert.strictEqual(b1.birinchi, true);
-    assert.strictEqual(b2.birinchi, false);
-    const qid = r.avtomat.qadamlar[0].id;
-    assert.strictEqual(voronka.statistika(r.avtomat.id).qadamlar[qid].bosildi, 1);
+    // Telegram havolasi — brauzerga chiqmasdan ochilishi uchun yo'naltirish yo'q
+    assert.strictEqual(url, CONFIG.videolar.find((v) => v.id === 'v3').havola);
   });
 
   await sinov('avtomat o\'zini o\'zi ishga tushira olmaydi, bo\'sh nom rad etiladi', () => {

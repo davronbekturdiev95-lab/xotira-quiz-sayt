@@ -533,6 +533,7 @@
         asboblar, matnMaydon,
         fk ? null : h('p', { class: 'xm__yordam', text: '**qalin**   __kursiv__   ~~chizilgan~~   [matn](https://...)   {ism}   {video}' }),
         h('div', { class: 'qator__label', text: 'Tugmalar' }), tugmaIdish,
+        fk ? null : h('p', { class: 'xm__yordam', text: 'Telegram havolalari (t.me/...) Telegram ichida, brauzersiz ochiladi — lekin ularning bosilishi sanalmaydi. Oddiy sayt havolalari sanaladi.' }),
         sinovTugma ? h('div', { class: 'xm__pastki' }, sinovTugma) : null),
       h('div', { class: 'xm__ong' },
         h('div', { class: 'qator__label', text: 'Telegram\'da shunday ko\'rinadi' }),

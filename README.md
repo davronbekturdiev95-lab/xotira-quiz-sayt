@@ -289,6 +289,10 @@ Birinchi ishga tushishda 3 ta tayyor namuna **o'chiq holda** qo'shiladi — ko'r
 Tugma turlari: havola, testni ochish (mini app), **unga tavsiya qilingan video**, avtomatni ishga tushirish.
 Matnda `{ism}` va `{video}` o'zgaruvchilari ishlaydi. Tugma bosilishlari statistikada ko'rinadi.
 
+> Telegram havolalari (`t.me/...`, shu jumladan boshqa botlar va mini app'lar) tugmaga
+> **to'g'ridan-to'g'ri** qo'yiladi — Telegram ichida, brauzersiz ochilishi uchun. Shuning uchun
+> ularning bosilishi sanalmaydi. Oddiy sayt havolalari `/r/<kod>` orqali sanaladi.
+
 ### Ommaviy xabar
 Auditoriya shartlar bilan tanlanadi (bosqich, video, daraja, teg, start parametri), yuborishdan oldin
 "O'zimga sinov yuborish". Yuborish sekundiga ~20 ta xabar tezlikda, server qayta ishga tushsa ham
