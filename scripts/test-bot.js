@@ -224,6 +224,21 @@ const oxirgi = () => yuborilgan[yuborilgan.length - 1];
     voronka.sozlamaSaqla({ tinch: { yoqilgan: false, dan: '09:00', gacha: '21:00' } });
   });
 
+  console.log('\nBot xabarlari');
+
+  await sinov('ulashilgan raqam saqlanadi, javob yozilmaydi va xabar o\'chiriladi', async () => {
+    const telegram = require('../lib/telegram.js');
+    const oldin = yuborilgan.length;
+    await telegram.xabargaJavob({
+      message_id: 55, chat: { id: 333, type: 'private' }, from: { id: 333, first_name: 'Guli' },
+      contact: { user_id: 333, phone_number: '+998901112233' }
+    });
+    assert.strictEqual(obunachilar.olish(333).telefon, '+998901112233');
+    const yangilar = yuborilgan.slice(oldin);
+    assert.ok(!yangilar.some((x) => x.usul === 'sendMessage'), 'botdan javob xabari ketmasligi kerak');
+    assert.ok(yangilar.some((x) => x.usul === 'deleteMessage' && x.tana.message_id === 55), 'raqam xabari o\'chirilishi kerak');
+  });
+
   console.log('\nOmmaviy xabar');
 
   await sinov('qoralama → yuborish → statistika', async () => {

@@ -731,7 +731,11 @@
     tg.requestContact(function (ruxsat, javob) {
       if (!ruxsat) return;
       var c = javob && javob.responseUnsafe && javob.responseUnsafe.contact;
-      if (c && c.phone_number) raqamniQoy(c.phone_number);
+      if (!c || !c.phone_number) return;
+      raqamniQoy(c.phone_number);
+      el.btnTgRaqam.textContent = '✓ Raqamingiz qo\'yildi';
+      el.btnTgRaqam.classList.add('tg-raqam--tayyor');
+      if (tg.HapticFeedback) { try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {} }
     });
   });
 

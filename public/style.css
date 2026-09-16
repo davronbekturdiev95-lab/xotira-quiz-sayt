@@ -270,18 +270,36 @@ body.is-result {
 
 /* Telefon: davlat tanlagich + raqam */
 .tel { display: flex; gap: 10px; }
+.tel__idish { position: relative; flex: 0 0 126px; display: block; }
+
+/* macOS va iOS "select" ni o'z ko'rinishida chizadi (kulrang, boshqa shrift bilan).
+   appearance: none — hamma qurilmada bir xil ko'rinishi uchun, strelkani o'zimiz chizamiz. */
 .tel__davlat {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   font-family: 'Bayroqlar', var(--shrift);
-  flex: 0 0 118px;
-  padding: 15px 10px;
+  width: 100%;
+  padding: 15px 30px 15px 12px;
   border-radius: 16px;
   border: 1px solid var(--maydon-chegara);
   background: var(--maydon-fon);
+  background-image: none;
   color: var(--matn-rang);
   font-size: 16px;
+  line-height: 1.2;
+  text-align: left;
   outline: none;
   cursor: pointer;
   transition: border-color .2s ease, box-shadow .2s ease;
+}
+.tel__ok {
+  position: absolute;
+  right: 11px; top: 50%;
+  width: 12px; height: 8px;
+  margin-top: -4px;
+  color: var(--xira-rang);
+  pointer-events: none;
 }
 .tel__davlat:focus {
   border-color: var(--cta-rang-2);
@@ -387,6 +405,11 @@ body.is-result {
 }
 .tg-raqam:active { transform: scale(.98); }
 .tg-raqam[hidden] { display: none; }
+.tg-raqam--tayyor {
+  color: #34d399;
+  border-color: color-mix(in srgb, #34d399 55%, transparent);
+  background: color-mix(in srgb, #34d399 12%, transparent);
+}
 
 /* ============================================================
    INTERAKTIV NATIJA

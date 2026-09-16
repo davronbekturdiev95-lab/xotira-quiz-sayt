@@ -82,7 +82,13 @@
           <div class="field">
             <span class="field__label" id="lbl-tel"></span>
             <div class="tel">
-              <select class="tel__davlat" id="inp-davlat" aria-label="Davlat"></select>
+              <span class="tel__idish">
+                <select class="tel__davlat" id="inp-davlat" aria-label="Davlat"></select>
+                <svg class="tel__ok" viewBox="0 0 12 8" aria-hidden="true" focusable="false">
+                  <path d="M1 1.5 6 6.5 11 1.5" fill="none" stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
               <input class="field__input tel__raqam" id="inp-tel" type="tel" name="telefon"
                      autocomplete="tel" inputmode="numeric" />
             </div>
