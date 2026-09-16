@@ -315,6 +315,11 @@ const oxirgi = () => yuborilgan[yuborilgan.length - 1];
 
   await sinov('xotira kuchi, yo\'nalishlar, muammolar, reja va video', () => {
     assert.strictEqual(t.xotiraKuchi, 100 - h.darajaFoiz);
+    assert.strictEqual(t.halqalar.length, 2);
+    assert.deepStrictEqual(t.halqalar.map((g) => g.kod), ['xotira', 'diqqat']);
+    assert.strictEqual(t.halqalar[0].kuch, t.xotiraKuchi);
+    assert.strictEqual(t.halqalar[1].kuch, 100 - h.foiz.diqqat);
+    assert.ok(t.halqalar[1].daraja.nom, 'diqqat darajasi kerak');
     assert.strictEqual(t.yonalishlar.length, 3);
     assert.ok(t.yonalishlar.some((y) => y.golib && y.kod === h.golibOq));
     assert.ok(t.muammolar.length >= 3 && t.muammolar.length <= 4);
@@ -334,6 +339,7 @@ const oxirgi = () => yuborilgan[yuborilgan.length - 1];
     const matn = natija.telegramMatn(posterli, CONFIG.matnlar);
     assert.ok(yuboruvchi.matnUzunligi(matn) <= 1024, 'uzunlik: ' + yuboruvchi.matnUzunligi(matn));
     assert.ok(matn.includes('Davron'));
+    assert.ok(matn.includes('Diqqatingiz'), 'bot xabarida diqqat qatori kerak');
     assert.ok(matn.includes('▰'));
     assert.ok(!/<(?!\/?b>)/.test(matn), 'faqat <b> tegi bo\'lishi kerak');
   });

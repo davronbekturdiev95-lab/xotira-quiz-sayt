@@ -72,7 +72,6 @@
     id('res-sarlavha').textContent = M.natija_sarlavha || 'NATIJANGIZ';
     el.btnVideo.textContent = M.natija_tugma || 'BEPUL VIDEONI KO\'RISH';
     id('btn-video-2').textContent = M.natija_tugma || 'BEPUL VIDEONI KO\'RISH';
-    id('res-kuch-nom').textContent = M.natija_kuch_nom || 'Xotira kuchi';
     id('res-yonalish-sarlavha').textContent = M.natija_yonalish_sarlavha || 'Muammo qaysi sohada';
     id('res-yonalish-izoh').textContent = M.natija_yonalish_izoh || '';
     id('res-muammo-sarlavha').textContent = M.natija_muammo_sarlavha || 'Asosiy muammolaringiz';
@@ -506,10 +505,52 @@
   /* ---------------- Interaktiv natija ---------------- */
   var DARAJA_RANGLARI = ['#34d399', '#60a5fa', '#f59e0b', '#f87171'];
 
-  function darajaRangi(t) {
-    var oxirgi = Math.max(1, (t.daraja.jami || 1) - 1);
-    var i = Math.round(((t.daraja.tartib || 0) / oxirgi) * (DARAJA_RANGLARI.length - 1));
+  var AYLANA = 2 * Math.PI * 52;
+  var HALQALAR = [];               // chizilgan halqalar: { kuch, son, chiziq }
+
+  function darajaRangi(daraja) {
+    var d = daraja || {};
+    var oxirgi = Math.max(1, (d.jami || 1) - 1);
+    var i = Math.round(((d.tartib || 0) / oxirgi) * (DARAJA_RANGLARI.length - 1));
     return DARAJA_RANGLARI[Math.max(0, Math.min(DARAJA_RANGLARI.length - 1, i))];
+  }
+
+  /** Bitta halqa: tepasida nomi, o'rtasida ball, pastida darajasi */
+  function halqaYasa(g) {
+    var rang = darajaRangi(g.daraja);
+
+    var blok = document.createElement('div');
+    blok.className = 'halqa-blok';
+
+    var nom = document.createElement('div');
+    nom.className = 'halqa-blok__nom';
+    nom.textContent = g.nom || '';
+
+    var halqa = document.createElement('div');
+    halqa.className = 'halqa';
+    halqa.innerHTML =
+      '<svg class="halqa__svg" viewBox="0 0 120 120" aria-hidden="true">' +
+      '<circle class="halqa__fon" cx="60" cy="60" r="52"></circle>' +
+      '<circle class="halqa__chiziq" cx="60" cy="60" r="52"></circle>' +
+      '</svg><div class="halqa__ich"><span class="halqa__son"><b>0</b><small>/100</small></span></div>';
+
+    var chiziq = halqa.querySelector('.halqa__chiziq');
+    chiziq.style.stroke = rang;
+    chiziq.style.strokeDasharray = String(AYLANA);
+    chiziq.style.strokeDashoffset = String(AYLANA);
+
+    var nishon = document.createElement('div');
+    nishon.className = 'daraja-nishon';
+    nishon.textContent = (g.daraja && g.daraja.nom) || '';
+    nishon.style.setProperty('--daraja-rang', rang);
+    if (!nishon.textContent) nishon.hidden = true;
+
+    blok.appendChild(nom);
+    blok.appendChild(halqa);
+    blok.appendChild(nishon);
+
+    HALQALAR.push({ kuch: g.kuch, son: halqa.querySelector('.halqa__son b'), chiziq: chiziq });
+    return blok;
   }
 
   function royxatQoy(ulId, blokId, qatorlar) {
@@ -546,16 +587,15 @@
     id('res-salom').textContent = salomMatn(t.ism);
     id('res-daraja').textContent = t.daraja.matn || '';
 
-    var rang = darajaRangi(t);
-    var nishon = id('res-daraja-nom');
-    nishon.textContent = t.daraja.nom || '';
-    nishon.style.setProperty('--daraja-rang', rang);
-
-    var halqa = id('res-halqa');
-    var aylana = 2 * Math.PI * 52;
-    halqa.style.stroke = rang;
-    halqa.style.strokeDasharray = String(aylana);
-    halqa.style.strokeDashoffset = String(aylana);
+    // Halqalar: xotira kuchi va (diqqatga oid savollar bo'lsa) diqqat
+    var halqalar = t.halqalar && t.halqalar.length
+      ? t.halqalar
+      : [{ nom: M.natija_kuch_nom || 'Xotira kuchi', kuch: t.xotiraKuchi, daraja: t.daraja }];
+    var halqaIdish = id('res-halqalar');
+    halqaIdish.innerHTML = '';
+    HALQALAR = [];
+    halqalar.forEach(function (g) { halqaIdish.appendChild(halqaYasa(g)); });
+    halqaIdish.classList.toggle('halqalar--bitta', halqalar.length < 2);
 
     // Yo'nalishlar
     var idish = id('res-yonalishlar');
@@ -619,19 +659,20 @@
     if (!t) return;
 
     setTimeout(function () {
-      var aylana = 2 * Math.PI * 52;
-      id('res-halqa').style.strokeDashoffset = String(aylana * (1 - t.xotiraKuchi / 100));
+      HALQALAR.forEach(function (g) {
+        g.chiziq.style.strokeDashoffset = String(AYLANA * (1 - g.kuch / 100));
+      });
       var chiziqlar = document.querySelectorAll('#res-yonalishlar i');
       for (var j = 0; j < chiziqlar.length; j++) {
         chiziqlar[j].style.width = Math.max(chiziqlar[j].getAttribute('data-foiz') > 0 ? 2 : 0, Number(chiziqlar[j].getAttribute('data-foiz'))) + '%';
       }
     }, 160);
 
-    var son = id('res-kuch');
     var boshi = Date.now();
     var sanoq = setInterval(function () {
       var p = Math.min(1, (Date.now() - boshi) / 1100);
-      son.textContent = String(Math.round(t.xotiraKuchi * (1 - Math.pow(1 - p, 3))));
+      var k = 1 - Math.pow(1 - p, 3);
+      HALQALAR.forEach(function (g) { g.son.textContent = String(Math.round(g.kuch * k)); });
       if (p >= 1) clearInterval(sanoq);
     }, 30);
   }

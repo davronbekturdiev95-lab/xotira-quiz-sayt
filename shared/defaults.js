@@ -358,6 +358,7 @@ const MATNLAR = {
   natija_tugma: 'BEPUL VIDEONI KO\'RISH',
   natija_salom: '{ism}, natijangiz tayyor',
   natija_kuch_nom: 'Xotira kuchi',
+  natija_diqqat_nom: 'Diqqatingiz',
   natija_yonalish_sarlavha: 'Muammo qaysi sohada',
   natija_yonalish_izoh: 'Foiz qancha yuqori bo\'lsa, shu sohada yordam shuncha zarur',
   natija_oq_xotira: 'Xotira: ism, raqam, faktlar',

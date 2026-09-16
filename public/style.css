@@ -446,9 +446,18 @@ body.is-result {
 .natija-kirish { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
 .natija-kirish--ko { opacity: 1; transform: none; }
 
-/* Xotira kuchi halqasi */
-.natija__asosiy { display: flex; align-items: center; gap: 22px; }
-.halqa { position: relative; width: 132px; height: 132px; flex: none; }
+/* Halqalar: xotira kuchi va diqqat — nomi tepasida, darajasi pastida */
+.halqalar { display: flex; justify-content: center; align-items: flex-start; gap: 18px; }
+.halqa-blok {
+  flex: 1 1 0; min-width: 0; max-width: 210px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.halqa-blok__nom {
+  font-size: 16px; font-weight: 700; line-height: 1.25;
+  color: var(--matn-rang); text-align: center;
+}
+.halqalar--bitta .halqa-blok { max-width: 260px; }
+.halqa { position: relative; width: 100%; max-width: 132px; aspect-ratio: 1 / 1; }
 .halqa__svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
 .halqa__fon { fill: none; stroke: color-mix(in srgb, var(--matn-rang) 12%, transparent); stroke-width: 11; }
 .halqa__chiziq {
@@ -460,13 +469,11 @@ body.is-result {
 .halqa__son b { font-size: 38px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .halqa__son small { font-size: 14px; color: var(--xira-rang); margin-left: 2px; }
 
-.natija__daraja { flex: 1; min-width: 0; }
-.natija__label { display: block; font-size: 13px; color: var(--xira-rang); margin-bottom: 8px; }
 .daraja-nishon {
   display: inline-block;
-  padding: 5px 16px;
+  padding: 5px 18px;
   border-radius: 999px;
-  font-size: 22px; font-weight: 800;
+  font-size: 18px; font-weight: 800;
   color: var(--daraja-rang, var(--tugma-rang));
   background: color-mix(in srgb, var(--daraja-rang, var(--tugma-rang)) 16%, transparent);
   border: 1px solid color-mix(in srgb, var(--daraja-rang, var(--tugma-rang)) 40%, transparent);
@@ -562,14 +569,19 @@ body.is-result {
 @media (max-width: 560px) {
   .natija__salom { font-size: calc(var(--sarlavha-olcham) * .64); margin-bottom: 18px; }
   .karta-n { padding: 16px; border-radius: 18px; }
-  .natija__asosiy { gap: 14px; }
-  .halqa { width: 108px; height: 108px; }
-  .halqa__son b { font-size: 30px; }
-  .daraja-nishon { font-size: 18px; padding: 4px 12px; }
+  .halqalar { gap: 10px; }
+  .halqa-blok { gap: 9px; }
+  .halqa-blok__nom { font-size: 14px; }
+  .halqa { max-width: 116px; }
+  .halqa__son b { font-size: 28px; }
+  .halqa__son small { font-size: 12px; }
+  .daraja-nishon { font-size: 15.5px; padding: 4px 13px; }
   .natija__matn, .royxat li, .natija__taqqos p { font-size: 15px; }
   .video-karta { padding: 14px; border-radius: 20px; }
   .video-karta__nom { font-size: 18px; }
 }
 @media (max-width: 360px) {
-  .natija__asosiy { flex-direction: column; text-align: center; }
+  .halqalar { gap: 8px; }
+  .halqa-blok__nom { font-size: 13px; }
+  .daraja-nishon { font-size: 14px; padding: 3px 11px; }
 }
