@@ -38,9 +38,13 @@
       <nav class="tabs">
         <button class="tab tab--active" data-tab="savollar">Savollar</button>
         <button class="tab" data-tab="videolar">Videolar</button>
+        <button class="tab" data-tab="media">Media</button>
         <button class="tab" data-tab="matnlar">Matnlar</button>
         <button class="tab" data-tab="dizayn">Dizayn</button>
         <button class="tab" data-tab="statistika">Statistika</button>
+        <button class="tab" data-tab="obunachilar">Obunachilar</button>
+        <button class="tab" data-tab="voronka">Voronka</button>
+        <button class="tab" data-tab="tarqatma">Ommaviy xabar</button>
         <button class="tab" data-tab="adminlar">Adminlar</button>
         <button class="tab" data-tab="tarix">Tarix</button>
       </nav>
@@ -127,6 +131,21 @@
         <button class="btn btn--primary" id="save-videolar">SAQLASH</button>
         <span class="saqlash__holat" id="holat-videolar"></span>
       </div>
+    </section>
+
+    <!-- ---------------- MEDIA ---------------- -->
+    <section class="tabpane" id="pane-media">
+      <div class="head">
+        <div>
+          <h2>Media — rasm va videolar</h2>
+          <p class="muted">Video posterlari va voronka xabarlari uchun fayllar. Rasm yuklashda sifati saqlangan holda
+             avtomatik siqiladi. Poster uchun <b>16:9</b> (masalan 1280×720) o'lcham tavsiya etiladi.</p>
+        </div>
+        <button class="btn btn--primary btn--avto" id="media-yukla-tugma" type="button">+ Fayl yuklash</button>
+      </div>
+      <input type="file" id="media-fayl" accept="image/jpeg,image/png,image/webp,video/mp4" multiple hidden />
+      <div class="yuklash-royxat" id="media-holat"></div>
+      <div class="media-setka" id="media-royxat"></div>
     </section>
 
     <!-- ---------------- MATNLAR ---------------- -->
@@ -220,6 +239,35 @@
       <div class="jadval-wrap"><table class="jadval" id="oxirgilar"></table></div>
     </section>
 
+    <!-- ---------------- OBUNACHILAR ---------------- -->
+    <section class="tabpane" id="pane-obunachilar">
+      <div class="head">
+        <div>
+          <h2>Bot obunachilari</h2>
+          <p class="muted">Botga yozgan yoki mini app'ni ochgan odamlar. Voronka va ommaviy xabarlar faqat shularga yuboriladi.
+             Testni oldin Telegram ichida tugatganlar ro'yxatga avtomatik qo'shildi; bu yangilanishdan oldin faqat
+             /start bosib ketganlarni tiklab bo'lmaydi.</p>
+        </div>
+        <button class="btn" id="obunachi-yangila" type="button">↻ Yangilash</button>
+      </div>
+      <div class="kartalar" id="obunachi-kartalar"></div>
+      <div class="qidiruv">
+        <input class="input" id="obunachi-q" type="search" placeholder="Qidirish: ism, @username, Telegram ID yoki telefon" />
+      </div>
+      <div class="jadval-wrap"><table class="jadval" id="obunachi-jadval"></table></div>
+      <div class="sahifalash" id="obunachi-sahifa"></div>
+    </section>
+
+    <!-- ---------------- VORONKA ---------------- -->
+    <section class="tabpane" id="pane-voronka">
+      <div id="voronka-ildiz"></div>
+    </section>
+
+    <!-- ---------------- OMMAVIY XABAR ---------------- -->
+    <section class="tabpane" id="pane-tarqatma">
+      <div id="tarqatma-ildiz"></div>
+    </section>
+
     <!-- ---------------- ADMINLAR ---------------- -->
     <section class="tabpane" id="pane-adminlar">
       <div class="head">
@@ -293,5 +341,6 @@
   </div>
 
   <script src="/admin.js"></script>
+  <script src="/admin-bot.js"></script>
 </body>
 </html>

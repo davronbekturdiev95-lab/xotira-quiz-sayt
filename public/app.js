@@ -71,6 +71,15 @@
 
     id('res-sarlavha').textContent = M.natija_sarlavha || 'NATIJANGIZ';
     el.btnVideo.textContent = M.natija_tugma || 'BEPUL VIDEONI KO\'RISH';
+    id('btn-video-2').textContent = M.natija_tugma || 'BEPUL VIDEONI KO\'RISH';
+    id('res-kuch-nom').textContent = M.natija_kuch_nom || 'Xotira kuchi';
+    id('res-yonalish-sarlavha').textContent = M.natija_yonalish_sarlavha || 'Muammo qaysi sohada';
+    id('res-yonalish-izoh').textContent = M.natija_yonalish_izoh || '';
+    id('res-muammo-sarlavha').textContent = M.natija_muammo_sarlavha || 'Asosiy muammolaringiz';
+    id('res-kuchli-sarlavha').textContent = M.natija_kuchli_sarlavha || 'Kuchli tomonlaringiz';
+    id('res-reja-sarlavha').textContent = M.natija_reja_sarlavha || 'Kunlik rejangiz';
+    id('res-video-sarlavha').textContent = M.natija_video_sarlavha || 'Sizga mos bepul videodars';
+    id('res-foyda-sarlavha').textContent = M.natija_video_foyda || '';
 
     id('err-sarlavha').textContent = M.xato_sarlavha || 'XATOLIK';
     el.btnRetry.textContent = M.xato_tugma || 'QAYTA URINISH';
@@ -112,6 +121,7 @@
       sessiya: SESSIYA,
       hodisa: nom,
       kanal: TG() ? 'telegram' : 'sayt',
+      initData: TG() ? TG().initData : '',
       manba: document.referrer || '',
       utm: window.location.search || ''
     });
@@ -493,27 +503,180 @@
     }, 600);
   }
 
+  /* ---------------- Interaktiv natija ---------------- */
+  var DARAJA_RANGLARI = ['#34d399', '#60a5fa', '#f59e0b', '#f87171'];
+
+  function darajaRangi(t) {
+    var oxirgi = Math.max(1, (t.daraja.jami || 1) - 1);
+    var i = Math.round(((t.daraja.tartib || 0) / oxirgi) * (DARAJA_RANGLARI.length - 1));
+    return DARAJA_RANGLARI[Math.max(0, Math.min(DARAJA_RANGLARI.length - 1, i))];
+  }
+
+  function royxatQoy(ulId, blokId, qatorlar) {
+    var ul = id(ulId);
+    ul.innerHTML = '';
+    (qatorlar || []).forEach(function (q) {
+      var li = document.createElement('li');
+      li.textContent = q;
+      ul.appendChild(li);
+    });
+    if (blokId) id(blokId).hidden = !(qatorlar && qatorlar.length);
+  }
+
+  function videoBosildi(ev) {
+    hodisa('video_bosdi');
+    var tgV = TG();
+    if (!tgV) return;                     // oddiy saytda havola o'zi ochiladi
+    ev.preventDefault();
+    var h = state.havola || '';
+    try {
+      if (/^https:\/\/t\.me\//i.test(h)) tgV.openTelegramLink(h);
+      else tgV.openLink(h);
+    } catch (x) { window.location.href = h; }
+    setTimeout(function () { try { tgV.close(); } catch (x) {} }, 300);
+  }
+
+  function salomMatn(ism) {
+    var s = String(M.natija_salom || '{ism}, natijangiz tayyor').replace(/\{ism\}/g, ism || '');
+    s = s.replace(/^\s*,\s*/, '').replace(/\s+,/g, ',').trim();
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function natijaChiz(t) {
+    id('res-salom').textContent = salomMatn(t.ism);
+    id('res-daraja').textContent = t.daraja.matn || '';
+
+    var rang = darajaRangi(t);
+    var nishon = id('res-daraja-nom');
+    nishon.textContent = t.daraja.nom || '';
+    nishon.style.setProperty('--daraja-rang', rang);
+
+    var halqa = id('res-halqa');
+    var aylana = 2 * Math.PI * 52;
+    halqa.style.stroke = rang;
+    halqa.style.strokeDasharray = String(aylana);
+    halqa.style.strokeDashoffset = String(aylana);
+
+    // Yo'nalishlar
+    var idish = id('res-yonalishlar');
+    idish.innerHTML = '';
+    t.yonalishlar.forEach(function (y) {
+      var qator = document.createElement('div');
+      qator.className = 'yonalish' + (y.golib ? ' yonalish--golib' : '');
+      var bosh = document.createElement('div');
+      bosh.className = 'yonalish__bosh';
+      var nom = document.createElement('span');
+      nom.textContent = y.nom;
+      if (y.golib && y.foiz > 0) {
+        var belgi = document.createElement('span');
+        belgi.className = 'yonalish__asosiy';
+        belgi.textContent = 'asosiy';
+        nom.appendChild(belgi);
+      }
+      var foiz = document.createElement('b');
+      foiz.textContent = y.foiz + '%';
+      bosh.appendChild(nom);
+      bosh.appendChild(foiz);
+      var chiziq = document.createElement('div');
+      chiziq.className = 'yonalish__chiziq';
+      var toldi = document.createElement('i');
+      toldi.setAttribute('data-foiz', String(y.foiz));
+      chiziq.appendChild(toldi);
+      qator.appendChild(bosh);
+      qator.appendChild(chiziq);
+      idish.appendChild(qator);
+    });
+
+    royxatQoy('res-muammolar', 'res-muammo-blok', t.muammolar);
+    royxatQoy('res-kuchli', 'res-kuchli-blok', t.kuchli);
+
+    id('res-taqqos-blok').hidden = !t.taqqoslash;
+    id('res-taqqos').textContent = t.taqqoslash ? t.taqqoslash.matn : '';
+
+    id('res-reja-blok').hidden = !t.reja;
+    id('res-reja').textContent = t.reja || '';
+
+    // Video
+    var poster = id('res-poster');
+    poster.hidden = !t.video.poster;
+    if (t.video.poster) {
+      poster.onerror = function () { poster.hidden = true; };
+      poster.src = t.video.poster;
+      poster.alt = t.video.nom || '';
+    }
+    id('res-video-nom').textContent = t.video.nom || '';
+    id('res-video').textContent = t.video.matn || '';
+    royxatQoy('res-foydalar', null, t.video.foydalar);
+    id('res-foyda-sarlavha').hidden = !(t.video.foydalar && t.video.foydalar.length) || !M.natija_video_foyda;
+  }
+
+  /** Raqamlar va chiziqlar asta to'ladi (requestAnimationFrame emas — fon rejimida ham ishlaydi) */
+  function natijaJonlantir(t) {
+    var bloklar = document.querySelectorAll('#screen-result .natija-kirish');
+    for (var i = 0; i < bloklar.length; i++) {
+      (function (b, k) { setTimeout(function () { b.classList.add('natija-kirish--ko'); }, 60 + k * 90); })(bloklar[i], i);
+    }
+    if (!t) return;
+
+    setTimeout(function () {
+      var aylana = 2 * Math.PI * 52;
+      id('res-halqa').style.strokeDashoffset = String(aylana * (1 - t.xotiraKuchi / 100));
+      var chiziqlar = document.querySelectorAll('#res-yonalishlar i');
+      for (var j = 0; j < chiziqlar.length; j++) {
+        chiziqlar[j].style.width = Math.max(chiziqlar[j].getAttribute('data-foiz') > 0 ? 2 : 0, Number(chiziqlar[j].getAttribute('data-foiz'))) + '%';
+      }
+    }, 160);
+
+    var son = id('res-kuch');
+    var boshi = Date.now();
+    var sanoq = setInterval(function () {
+      var p = Math.min(1, (Date.now() - boshi) / 1100);
+      son.textContent = String(Math.round(t.xotiraKuchi * (1 - Math.pow(1 - p, 3))));
+      if (p >= 1) clearInterval(sanoq);
+    }, 30);
+  }
+
+  /** Asosiy tugma ekrandan chiqsa — pastda yopishqoq tugma chiqadi */
+  var yopishqoqKuzatuvchi = null;
+  function yopishqoqUla() {
+    var panel = id('natija-yopishqoq');
+    if (!('IntersectionObserver' in window) || yopishqoqKuzatuvchi) return;
+    yopishqoqKuzatuvchi = new IntersectionObserver(function (yozuvlar) {
+      var korinadi = yozuvlar[0].isIntersecting;
+      var natijadami = id('screen-result').classList.contains('screen--active');
+      panel.classList.toggle('natija-yopishqoq--korin', natijadami && !korinadi);
+      panel.setAttribute('aria-hidden', natijadami && !korinadi ? 'false' : 'true');
+    });
+    yopishqoqKuzatuvchi.observe(el.btnVideo);
+  }
+
   function natija(d) {
     clearInterval(taymer);
     state.havola = d.havola;
-    el.resDaraja.textContent = d.darajaMatn;
-    el.resVideo.textContent = d.videoMatn;
-    el.btnVideo.setAttribute('href', d.havola);
-    var tgV = TG();
-    if (tgV) {
-      el.btnVideo.onclick = function (ev) {
-        ev.preventDefault();
-        var h = state.havola || '';
-        try {
-          if (/^https:\/\/t\.me\//i.test(h)) tgV.openTelegramLink(h);
-          else tgV.openLink(h);
-        } catch (x) { window.location.href = h; }
-        setTimeout(function () { try { tgV.close(); } catch (x) {} }, 300);
-      };
+
+    [el.btnVideo, id('btn-video-2')].forEach(function (b) {
+      b.setAttribute('href', d.havola);
+      b.onclick = videoBosildi;
+    });
+
+    var t = d.tahlil;
+    if (t) {
+      natijaChiz(t);
+    } else {
+      // Eski server javobi — oddiy natija
+      id('res-salom').textContent = '';
+      el.resDaraja.textContent = d.darajaMatn;
+      el.resVideo.textContent = d.videoMatn;
+      id('res-yonalish-blok').hidden = true;
     }
+
     document.body.classList.add('is-result');
     el.bar.style.width = '100%';
     ekran('screen-result');
+    natijaJonlantir(t);
+    yopishqoqUla();
+    var tgN = TG();
+    if (tgN && tgN.HapticFeedback) { try { tgN.HapticFeedback.notificationOccurred('success'); } catch (e) {} }
   }
 
   /* ---------------- Hodisalar ---------------- */

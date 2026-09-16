@@ -11,7 +11,7 @@ havolalar, sayt matnlari va dizayn. Kodga tegish shart emas.
 
 ## 1. Ishga tushirish
 
-Kerak bo'ladi: **Node.js 18+**, domen va SSL. Boshqa hech narsa — npm paketlari yo'q.
+Kerak bo'ladi: **Node.js 22.13+** (ichidagi `node:sqlite` ishlatiladi), domen va SSL. Boshqa hech narsa — npm paketlari yo'q.
 
 ```bash
 cp .env.example .env
@@ -79,10 +79,14 @@ Parol 8 marta xato terilsa IP 10 daqiqaga bloklanadi.
 | Bo'lim | Nima qilinadi |
 |---|---|
 | **Savollar** | Savol qo'shish, o'chirish, tartibini o'zgartirish. Variant qo'shish/o'chirish. Har bir variant qanday ball berishini sozlash |
-| **Videolar** | Video qo'shish, o'chirish, havola va matnini o'zgartirish. Video qaysi holatda chiqishini qoida bilan belgilash |
+| **Videolar** | Video qo'shish, o'chirish, havola va matnini o'zgartirish. Poster va "videoda nimalarni o'rganasiz" ro'yxati. Video qaysi holatda chiqishini qoida bilan belgilash |
+| **Media** | Rasm va videolarni yuklash (poster, voronka xabarlari uchun). Rasm brauzerda avtomatik siqiladi |
 | **Matnlar** | Kirish sahifasi, savol ekrani, forma, natija sahifasi — barcha yozuvlar. Shu yerda daraja matnlari ham bor |
 | **Dizayn** | **Ikkita palitra** — qorong'i va yorug' mavzu. Ranglar, tugma burchagi, sarlavha o'lchami |
 | **Statistika** | Nechta odam tugatgan, qaysi video qancha chiqqan, oxirgi 30 ta lead, Excel yuklab olish |
+| **Obunachilar** | Botga yozgan / mini app'ni ochgan odamlar, ular qaysi bosqichda, teglari |
+| **Voronka** | Avtomatik xabarlar zanjiri: boshlanish sharti → xabar, kutish, shart, teg qadamlari |
+| **Ommaviy xabar** | Bot obunachilariga bir martalik xabar — hoziroq yoki rejalashtirib, auditoriyani tanlab |
 | **Adminlar** | Yangi admin qo'shish, o'chirish, parol almashtirish (faqat bosh admin) |
 | **Tarix** | Qaysi admin qachon nimani o'zgartirgani — eski va yangi qiymati bilan |
 
@@ -93,8 +97,8 @@ tushirish shart emas.
 
 | Rol | Huquqlar |
 |---|---|
-| **Bosh admin** | Hamma narsa + adminlarni qo'shish/o'chirish, parollarini almashtirish |
-| **Admin** | Savollar, videolar, matnlar, dizayn, statistika, tarix. Adminlarga tegolmaydi |
+| **Bosh admin** | Hamma narsa + adminlarni qo'shish/o'chirish, parollarini almashtirish, voronka va ommaviy xabar |
+| **Admin** | Savollar, videolar, media, matnlar, dizayn, statistika, tarix. Voronka va ommaviy xabarni faqat ko'radi. Adminlarga tegolmaydi |
 
 Oxirgi bosh adminni o'chirib bo'lmaydi. O'zini o'chira olmaydi.
 
@@ -260,7 +264,45 @@ faqat tasodifiy tashrif raqami va bosqich nomi.
 
 ---
 
-## 8. Reklama piksellari
+## 8. Interaktiv natija va Telegram bot voronkasi
+
+### Natija
+Natija sahifasi (saytda ham, mini app'da ham) ko'rsatadi: **xotira kuchi** (0–100) va daraja,
+**muammo yo'nalishlari** (xotira / diqqat / til, foizda), **asosiy muammolar** va **kuchli tomonlar**,
+**kunlik reja**, 30 ta natija to'plangach **boshqalar bilan taqqoslash**, tavsiya qilingan video
+**posteri** va foydalari. Test Telegram ichida topshirilsa, xuddi shu natija poster bilan chatga ham keladi.
+
+Muammo / kuchli tomon / reja matnlari har bir variantga yoziladi: **Savollar → 💬 Natijadagi izohlar**.
+
+### Obunachilar
+Botga yozgan yoki mini app'ni ochgan har bir odam `data/bot.db` ga yoziladi va bosqichi kuzatiladi:
+/start → testni boshladi → tugatdi → videoni bosdi. Botni bloklaganlar avtomatik belgilanadi.
+Bot `/id` buyrug'iga foydalanuvchining Telegram ID raqamini qaytaradi (sinov xabarlari uchun).
+
+### Voronka
+Avtomat = **boshlanish sharti** (/start, testni boshladi, tugatdi, videoni bosdi, teg qo'shildi yoki qo'lda)
++ **qadamlar**: 💬 xabar (matn, rasm/video, tugmalar), ⏱ kutish, 🔀 shart, 🏷 teg, ⚡ boshqa avtomat.
+"Zanjir to'xtaydi, agar..." — masalan testni tugatsa, "testni boshlang" eslatmalari darhol to'xtaydi.
+**Tinch vaqt** (standart 09:00–21:00, Toshkent) dan tashqaridagi xabarlar ertalabgacha kutadi.
+Birinchi ishga tushishda 3 ta tayyor namuna **o'chiq holda** qo'shiladi — ko'rib chiqib, yoqasiz.
+
+Tugma turlari: havola, testni ochish (mini app), **unga tavsiya qilingan video**, avtomatni ishga tushirish.
+Matnda `{ism}` va `{video}` o'zgaruvchilari ishlaydi. Tugma bosilishlari statistikada ko'rinadi.
+
+### Ommaviy xabar
+Auditoriya shartlar bilan tanlanadi (bosqich, video, daraja, teg, start parametri), yuborishdan oldin
+"O'zimga sinov yuborish". Yuborish sekundiga ~20 ta xabar tezlikda, server qayta ishga tushsa ham
+qolgan joyidan davom etadi. Voronka va ommaviy xabarni faqat **bosh admin** o'zgartiradi; har bir amal tarixga yoziladi.
+
+### Fayllar va zaxira
+Rasm/videolar `data/media/` da, bot bazasi `data/bot.db` da. Baza har kuni `data/zaxira/` ga nusxalanadi
+(oxirgi 7 kun). Nginx 1 MB dan katta so'rovni o'tkazmagani uchun fayllar 700 KB lik bo'laklarda yuklanadi.
+
+Sinov (haqiqiy Telegram'ga hech narsa yubormaydi): `node scripts/test-bot.js`
+
+---
+
+## 9. Reklama piksellari
 
 `public/index.html` ning `<head>` qismida tayyor joy bor:
 ```html
@@ -269,15 +311,24 @@ faqat tasodifiy tashrif raqami va bosqich nomi.
 
 ---
 
-## 9. Fayllar
+## 10. Fayllar
 
 ```
 xotira-quiz-sayt/
 ├── server.js               HTTP server, sayt va admin API
 ├── lib/
 │   ├── quiz.js             ball hisoblash
+│   ├── natija.js           interaktiv natija tahlili va Telegram xabari
 │   ├── store.js            config, foydalanuvchilar, tarix, natijalar
-│   └── auth.js             parol, sessiya, rollar
+│   ├── auth.js             parol, sessiya, rollar
+│   ├── telegram.js         bot: /start, /id, tugmalar, natija xabari
+│   ├── tgapi.js            Telegram Bot API so'rovlari, initData tekshiruvi
+│   ├── db.js               SQLite baza (data/bot.db) va kunlik zaxira
+│   ├── obunachilar.js      bot obunachilari, teglar, segmentlar
+│   ├── media.js            rasm/video yuklash va berish
+│   ├── yuboruvchi.js       xabar yuborish, tugmalar, bosilishlarni sanash
+│   ├── voronka.js          avtomatik xabarlar zanjiri
+│   └── tarqatma.js         ommaviy xabar
 ├── shared/
 │   ├── defaults.js         boshlang'ich savollar, videolar, ranglar
 │   └── davlatlar.js        telefon uchun davlatlar
@@ -288,10 +339,15 @@ xotira-quiz-sayt/
 │   ├── admin.html          boshqaruv paneli
 │   ├── fonts/bayroqlar.woff2  bayroq shrifti (Windows uchun)
 │   ├── admin.css
-│   └── admin.js
+│   ├── admin.js
+│   └── admin-bot.js        panel: media, obunachilar, voronka, ommaviy xabar
 ├── google-sheets/Code.gs   Google Sheets skripti
 ├── scripts/test-scoring.js ball tizimini sinash
+├── scripts/test-bot.js     bot modullarini sinash
 └── data/                   ⚠️ zaxira nusxa oladigan papka
+    ├── bot.db              obunachilar, voronka, ommaviy xabarlar, media ro'yxati
+    ├── media/              yuklangan rasm va videolar
+    ├── zaxira/             bot.db ning kunlik nusxalari
     ├── config.json         savollar, videolar, matnlar, dizayn
     ├── users.json          adminlar (parollar hash qilingan)
     ├── audit.jsonl         amallar tarixi

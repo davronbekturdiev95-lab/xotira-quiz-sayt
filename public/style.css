@@ -387,3 +387,166 @@ body.is-result {
 }
 .tg-raqam:active { transform: scale(.98); }
 .tg-raqam[hidden] { display: none; }
+
+/* ============================================================
+   INTERAKTIV NATIJA
+   ============================================================ */
+.natija { text-align: left; }
+.natija [hidden] { display: none !important; }
+
+.natija__kichik {
+  margin: 0 0 6px;
+  text-align: center;
+  font-size: 13px; font-weight: 800;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--tugma-rang);
+}
+.natija__salom {
+  margin: 0 0 22px;
+  text-align: center;
+  font-size: calc(var(--sarlavha-olcham) * .8);
+  line-height: 1.15; font-weight: 800;
+}
+
+.karta-n {
+  background: color-mix(in srgb, var(--maydon-fon) 84%, transparent);
+  border: 1px solid var(--maydon-chegara);
+  border-radius: 22px;
+  padding: 20px;
+  margin-bottom: 14px;
+}
+.karta-n__sarlavha { margin: 0 0 4px; font-size: 17px; font-weight: 700; line-height: 1.3; }
+.karta-n__izoh { margin: 0 0 16px; font-size: 13px; color: var(--xira-rang); line-height: 1.45; }
+.karta-n__izoh:empty { display: none; }
+
+/* Chiqish animatsiyasi */
+.natija-kirish { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
+.natija-kirish--ko { opacity: 1; transform: none; }
+
+/* Xotira kuchi halqasi */
+.natija__asosiy { display: flex; align-items: center; gap: 22px; }
+.halqa { position: relative; width: 132px; height: 132px; flex: none; }
+.halqa__svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.halqa__fon { fill: none; stroke: color-mix(in srgb, var(--matn-rang) 12%, transparent); stroke-width: 11; }
+.halqa__chiziq {
+  fill: none; stroke: var(--tugma-rang); stroke-width: 11; stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(.2, .8, .2, 1);
+}
+.halqa__ich { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.halqa__son { white-space: nowrap; }
+.halqa__son b { font-size: 38px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.halqa__son small { font-size: 14px; color: var(--xira-rang); margin-left: 2px; }
+
+.natija__daraja { flex: 1; min-width: 0; }
+.natija__label { display: block; font-size: 13px; color: var(--xira-rang); margin-bottom: 8px; }
+.daraja-nishon {
+  display: inline-block;
+  padding: 5px 16px;
+  border-radius: 999px;
+  font-size: 22px; font-weight: 800;
+  color: var(--daraja-rang, var(--tugma-rang));
+  background: color-mix(in srgb, var(--daraja-rang, var(--tugma-rang)) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--daraja-rang, var(--tugma-rang)) 40%, transparent);
+}
+.natija__matn { margin: 16px 0 0; color: var(--natija-matn); font-size: 16px; line-height: 1.62; white-space: pre-line; }
+.natija__matn:empty { display: none; }
+.natija__matn--reja { margin-top: 8px; }
+
+/* Yo'nalishlar */
+.yonalish { margin-bottom: 16px; }
+.yonalish:last-child { margin-bottom: 0; }
+.yonalish__bosh { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 15px; margin-bottom: 7px; }
+.yonalish__bosh b { font-variant-numeric: tabular-nums; }
+.yonalish__asosiy {
+  display: inline-block; margin-left: 8px; vertical-align: 2px;
+  padding: 2px 7px; border-radius: 6px;
+  font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  background: var(--cta-rang); color: var(--cta-matn);
+}
+.yonalish__chiziq { height: 10px; border-radius: 6px; overflow: hidden; background: color-mix(in srgb, var(--matn-rang) 10%, transparent); }
+.yonalish__chiziq i {
+  display: block; height: 100%; width: 0; border-radius: 6px;
+  background: linear-gradient(90deg, var(--tugma-rang), var(--cta-rang-2));
+  transition: width 1s cubic-bezier(.2, .8, .2, 1);
+}
+.yonalish--golib .yonalish__chiziq i { background: linear-gradient(90deg, var(--cta-rang-2), var(--xato)); }
+
+/* Ro'yxatlar */
+.royxat { list-style: none; margin: 10px 0 0; padding: 0; }
+.royxat li {
+  position: relative;
+  padding: 10px 0 10px 34px;
+  font-size: 15.5px; line-height: 1.45;
+  color: var(--natija-matn);
+  border-top: 1px solid color-mix(in srgb, var(--maydon-chegara) 65%, transparent);
+}
+.royxat li:first-child { border-top: 0; }
+.royxat li::before {
+  position: absolute; left: 0; top: 10px;
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800;
+}
+.royxat--muammo li::before { content: '!'; color: var(--xato); background: color-mix(in srgb, var(--xato) 18%, transparent); }
+.royxat--kuchli li::before { content: '✓'; color: #34d399; background: color-mix(in srgb, #34d399 18%, transparent); }
+.royxat--foyda li::before { content: '▶'; font-size: 9px; color: var(--cta-rang-2); background: color-mix(in srgb, var(--cta-rang) 22%, transparent); }
+
+.natija__taqqos { display: flex; align-items: center; gap: 14px; }
+.natija__taqqos p { margin: 0; font-size: 15.5px; line-height: 1.5; color: var(--natija-matn); }
+.natija__taqqos-belgi { font-size: 28px; flex: none; }
+
+/* Video kartochkasi */
+.video-karta {
+  margin-top: 22px;
+  padding: 18px;
+  border-radius: 24px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--cta-rang) 24%, var(--maydon-fon)), var(--maydon-fon) 70%);
+  border: 1px solid color-mix(in srgb, var(--cta-rang) 45%, var(--maydon-chegara));
+}
+.video-karta__sarlavha {
+  margin: 0;
+  font-size: 12.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--cta-rang-2);
+}
+.video-karta__poster {
+  display: block;
+  width: 100%; max-width: 100%;
+  aspect-ratio: 16 / 9; object-fit: cover;
+  margin: 12px 0 14px;
+  border-radius: 16px;
+  background: var(--maydon-fon);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .3);
+}
+.video-karta__nom { margin: 10px 0 0; font-size: 20px; line-height: 1.3; font-weight: 800; }
+.video-karta__poster + .video-karta__nom { margin-top: 0; }
+.video-karta .natija__matn { margin-top: 10px; }
+.video-karta__foyda { margin: 16px 0 0; font-size: 14px; font-weight: 700; color: var(--matn-rang); }
+.video-karta .btn--cta { display: flex; margin: 20px auto 0; }
+
+/* Pastdagi yopishqoq tugma */
+.natija-yopishqoq {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  display: flex; justify-content: center;
+  padding: 18px 16px calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, var(--natija-fon-3) 55%);
+  transform: translateY(110%);
+  transition: transform .3s ease;
+  pointer-events: none;
+}
+.natija-yopishqoq--korin { transform: none; pointer-events: auto; }
+.natija-yopishqoq .btn--cta { max-width: 520px; }
+
+@media (max-width: 560px) {
+  .natija__salom { font-size: calc(var(--sarlavha-olcham) * .64); margin-bottom: 18px; }
+  .karta-n { padding: 16px; border-radius: 18px; }
+  .natija__asosiy { gap: 14px; }
+  .halqa { width: 108px; height: 108px; }
+  .halqa__son b { font-size: 30px; }
+  .daraja-nishon { font-size: 18px; padding: 4px 12px; }
+  .natija__matn, .royxat li, .natija__taqqos p { font-size: 15px; }
+  .video-karta { padding: 14px; border-radius: 20px; }
+  .video-karta__nom { font-size: 18px; }
+}
+@media (max-width: 360px) {
+  .natija__asosiy { flex-direction: column; text-align: center; }
+}

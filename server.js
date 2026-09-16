@@ -11,11 +11,19 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
+const db = require('./lib/db.js');
 const store = require('./lib/store.js');
 const auth = require('./lib/auth.js');
 const quiz = require('./lib/quiz.js');
 const amo = require('./lib/amo.js');
 const telegram = require('./lib/telegram.js');
+const tgapi = require('./lib/tgapi.js');
+const obunachilar = require('./lib/obunachilar.js');
+const media = require('./lib/media.js');
+const yuboruvchi = require('./lib/yuboruvchi.js');
+const voronka = require('./lib/voronka.js');
+const tarqatma = require('./lib/tarqatma.js');
+const natijaTahlil = require('./lib/natija.js');
 const { OQLAR, BELGILAR, RANG_NOMLARI, SHAKL_NOMLARI } = require('./shared/defaults.js');
 const { DAVLATLAR, UZ_OPERATORLAR, davlatTop } = require('./shared/davlatlar.js');
 
@@ -29,6 +37,13 @@ const SHEETS_SECRET = process.env.SHEETS_SECRET || '';
 const BOT_TOKEN = process.env.BOT_TOKEN || '';
 const SAYT_URL = process.env.SAYT_URL || '';
 const PUBLIC_DIR = path.join(__dirname, 'public');
+
+// Bot obunachilari, voronka, ommaviy xabarlar va media — data/bot.db (SQLite)
+db.ochish();
+media.foydalanishTekshiruvchi((id) => (store.configOl().videolar || [])
+  .filter((v) => v.poster === id).map((v) => 'video posteri: ' + String(v.id).toUpperCase()));
+media.foydalanishTekshiruvchi(voronka.mediaFoydalanish);
+media.foydalanishTekshiruvchi(tarqatma.mediaFoydalanish);
 
 // Birinchi ishga tushirishda bosh adminni yaratamiz
 auth.boshAdminYarat(process.env.BOSH_ADMIN_LOGIN || 'admin', process.env.ADMIN_PAROL || '');
@@ -179,7 +194,33 @@ function natijaQatori(config, lead, javoblar, natija, qoshimcha) {
 /* ==========================================================================
  * STATISTIKA
  * ========================================================================== */
-const HODISA_NOMLARI = ['ochildi', 'boshladi', 'formaga_yetdi'];
+const HODISA_NOMLARI = ['ochildi', 'boshladi', 'formaga_yetdi', 'video_bosdi'];
+
+/* Mini app ichidagi hodisa → obunachi bosqichi va voronka */
+const SAYT_BOT_HODISA = { ochildi: 'miniapp_ochdi', boshladi: 'test_boshladi', formaga_yetdi: 'formaga_yetdi', video_bosdi: 'video_bosdi' };
+
+function botHodisasi(tgUser, hodisa, qoshimcha) {
+  const tur = SAYT_BOT_HODISA[hodisa] || hodisa;
+  try {
+    obunachilar.upsert(tgUser);
+    obunachilar.hodisaQayd(tgUser.id, tur, qoshimcha);
+    voronka.hodisa(tgUser.id, tur);
+  } catch (e) {
+    console.error('[obunachi]', e.message);
+  }
+}
+
+/* Taqqoslash uchun oldingi natijalarning daraja foizlari (xotirada) */
+let FOIZLAR = null;
+function oldingiFoizlar() {
+  if (!FOIZLAR) FOIZLAR = store.natijalarOl().map((r) => Number(r.daraja_foiz)).filter(Number.isFinite);
+  return FOIZLAR;
+}
+
+function posterUrl(id) {
+  const m = id ? media.olish(id) : null;
+  return m ? m.url : null;
+}
 
 /** Bir sessiya bitta hodisani ikki marta yozmasin (xotirada) */
 const korilganHodisalar = new Map();
@@ -229,7 +270,8 @@ function statistika() {
       ochildi: son.ochildi.size,
       boshladi: son.boshladi.size,
       formaga_yetdi: son.formaga_yetdi.size,
-      tugatdi: natijalar.length
+      tugatdi: natijalar.length,
+      video_bosdi: son.video_bosdi.size
     };
   }
 
@@ -327,6 +369,10 @@ function configTekshir(xom, eski) {
           daraja: son(v.daraja)
         };
         if (v.yoshGuruh === 'yosh' || v.yoshGuruh === 'katta') chiqish.yoshGuruh = v.yoshGuruh;
+        for (const iz of ['muammo', 'kuchli', 'reja']) {
+          const t = String(v[iz] || '').trim().slice(0, 300);
+          if (t) chiqish[iz] = t;
+        }
         if (v.katta && (v.katta.ball || v.katta.belgi)) {
           chiqish.katta = {
             ball: sonlar(v.katta.ball, quiz.OQ_KODLAR),
@@ -384,7 +430,9 @@ function configTekshir(xom, eski) {
         yonalish,
         shartlar,
         ustunlik: son(v.ustunlik),
-        zaxira: !!v.zaxira
+        zaxira: !!v.zaxira,
+        poster: posterTekshir(v.poster),
+        foydalar: String(v.foydalar || '').trim().slice(0, 1000)
       });
     }
 
@@ -481,6 +529,65 @@ function tanaOqi(req, limit = 512 * 1024) {
   });
 }
 
+/** Video posteri — faqat bazada bor rasm bo'lsa qabul qilinadi */
+function posterTekshir(id) {
+  const m = id ? media.olish(String(id)) : null;
+  return m && m.tur === 'rasm' ? m.id : null;
+}
+
+/** Ikkilik tana (fayl bo'laklari uchun) */
+function tanaBuf(req, limit) {
+  return new Promise((resolve, reject) => {
+    const qismlar = [];
+    let hajm = 0;
+    req.on('data', (c) => {
+      hajm += c.length;
+      if (hajm > limit) { reject(new Error('Juda katta')); req.destroy(); return; }
+      qismlar.push(c);
+    });
+    req.on('end', () => resolve(Buffer.concat(qismlar)));
+    req.on('error', reject);
+  });
+}
+
+/** Rasm / videoni berish (video uchun Range qo'llab-quvvatlanadi) */
+function mediaUzat(req, res, faylYoli, mime) {
+  fs.stat(faylYoli, (err, st) => {
+    if (err) { res.writeHead(404); return res.end(); }
+    const sarlavha = {
+      'Content-Type': mime,
+      'Accept-Ranges': 'bytes',
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      'X-Content-Type-Options': 'nosniff'
+    };
+    const r = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range || ''));
+    if (r && (r[1] || r[2])) {
+      let bosh = r[1] ? Number(r[1]) : Math.max(0, st.size - Number(r[2]));
+      const oxir = r[1] && r[2] ? Math.min(Number(r[2]), st.size - 1) : st.size - 1;
+      if (bosh > oxir || bosh >= st.size) {
+        res.writeHead(416, { 'Content-Range': `bytes */${st.size}` });
+        return res.end();
+      }
+      bosh = Math.max(0, bosh);
+      res.writeHead(206, Object.assign(sarlavha, { 'Content-Range': `bytes ${bosh}-${oxir}/${st.size}`, 'Content-Length': oxir - bosh + 1 }));
+      if (req.method === 'HEAD') return res.end();
+      return fs.createReadStream(faylYoli, { start: bosh, end: oxir }).pipe(res);
+    }
+    res.writeHead(200, Object.assign(sarlavha, { 'Content-Length': st.size }));
+    if (req.method === 'HEAD') return res.end();
+    fs.createReadStream(faylYoli).pipe(res);
+  });
+}
+
+function hajmMatn(bayt) {
+  const n = Number(bayt || 0);
+  return n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+}
+
+function toshkentVaqt(ms) {
+  return new Date(Number(ms) + 5 * 3600e3).toISOString().slice(0, 16).replace('T', ' ');
+}
+
 function json(res, code, obj, headers) {
   res.writeHead(code, Object.assign({ 'Content-Type': 'application/json; charset=utf-8' }, headers || {}));
   res.end(JSON.stringify(obj));
@@ -540,13 +647,20 @@ const server = http.createServer(async (req, res) => {
         tg_username: tgUser && tgUser.username ? '@' + tgUser.username : ''
       });
 
+      // Batafsil tahlil: xotira kuchi, yo'nalishlar, muammolar, reja, poster
+      const tahlil = natijaTahlil.tahlil(config, tekshir.javoblar, natija, {
+        ism: ismR.ism,
+        oldingiFoizlar: oldingiFoizlar(),
+        posterUrl
+      });
+
       store.natijaYoz(qator);
+      oldingiFoizlar().push(Number(qator.daraja_foiz));
       sheetsGaYubor(qator);
       amo.yubor(qator);   // xato bo'lsa navbatga tushadi, natijaga ta'sir qilmaydi
       if (tgUser) {
-        telegram.natijaYubor(tgUser.id, {
-          darajaMatn: natija.darajaMatn, videoMatn: natija.videoMatn, havola: natija.havola
-        });
+        botHodisasi(tgUser, 'test_tugatdi', { video_id: natija.videoId, daraja_kod: natija.darajaKod, telefon: telR.telefon });
+        telegram.natijaYubor(tgUser.id, tahlil, config.matnlar, natija.havola);
       }
 
       return json(res, 200, {
@@ -555,14 +669,15 @@ const server = http.createServer(async (req, res) => {
         havola: natija.havola,
         videoMatn: natija.videoMatn,
         darajaMatn: natija.darajaMatn,
-        daraja: natija.daraja
+        daraja: natija.daraja,
+        tahlil
       });
     }
 
     /* ------------------------------------------- VORONKA HODISALARI (sayt) */
     if (req.method === 'POST' && yol === '/api/hodisa') {
       try {
-        const body = JSON.parse((await tanaOqi(req, 4096)) || '{}');
+        const body = JSON.parse((await tanaOqi(req, 8192)) || '{}');
         const hodisa = String(body.hodisa || '');
         const sessiya = String(body.sessiya || '').slice(0, 40);
 
@@ -575,11 +690,36 @@ const server = http.createServer(async (req, res) => {
             manba: String(body.manba || '').slice(0, 200),
             utm: String(body.utm || '').slice(0, 300)
           });
+          // Telegram ichida — obunachi bosqichini yangilaymiz (imzo tekshiriladi)
+          const tgUser = body.initData && BOT_TOKEN ? telegram.initDataTekshir(body.initData, BOT_TOKEN) : null;
+          if (tgUser && tgUser.id) botHodisasi(tgUser, hodisa);
         }
       } catch (_) { /* voronka yozuvi muhim emas — xato bo'lsa jim o'tamiz */ }
 
       res.writeHead(204);
       return res.end();
+    }
+
+    /* --------------------------------- BOT XABARIDAGI TUGMA (bosilishi sanaladi) */
+    if (req.method === 'GET' && /^\/r\/[A-Za-z0-9_-]{6,20}$/.test(yol)) {
+      const r = yuboruvchi.kodBosildi(yol.slice(3));
+      if (!r || !r.manzil || !/^https?:\/\//i.test(r.manzil)) {
+        res.writeHead(302, { Location: '/' });
+        return res.end();
+      }
+      if (r.videomi && r.tg_id) botHodisasi({ id: r.tg_id }, 'video_bosdi');
+      res.writeHead(302, { Location: r.manzil, 'Cache-Control': 'no-store' });
+      return res.end();
+    }
+
+    /* -------------------------------------------------- YUKLANGAN RASM / VIDEO */
+    if ((req.method === 'GET' || req.method === 'HEAD') && yol.startsWith('/media/')) {
+      const f = media.faylTop(yol.slice(7));
+      if (!f) {
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+        return res.end('Topilmadi');
+      }
+      return mediaUzat(req, res, f.yol, f.mime);
     }
 
     /* -------------------------------------------------------- ADMIN KIRISH */
@@ -632,7 +772,9 @@ const server = http.createServer(async (req, res) => {
           belgilar: BELGILAR,
           rangNomlari: RANG_NOMLARI,
           shaklNomlari: SHAKL_NOMLARI,
-          maksimum: quiz.maksimum(quiz.faolSavollar(store.configOl()))
+          maksimum: quiz.maksimum(quiz.faolSavollar(store.configOl())),
+          posterlar: Object.fromEntries(store.configOl().videolar
+            .filter((v) => v.poster).map((v) => [v.poster, posterUrl(v.poster)]).filter((x) => x[1]))
         });
       }
 
@@ -756,6 +898,171 @@ const server = http.createServer(async (req, res) => {
         return json(res, 200, { ok: true });
       }
 
+      /* ==================== BOT: media, obunachilar, voronka, ommaviy xabar */
+      const BOSH_YOLLAR = [
+        '/api/admin/avtomat', '/api/admin/avtomat/holat', '/api/admin/avtomat/ochir', '/api/admin/avtomat/qolda',
+        '/api/admin/voronka-sozlama', '/api/admin/tarqatma', '/api/admin/tarqatma/amal'
+      ];
+      if (req.method === 'POST' && BOSH_YOLLAR.includes(yol) && user.rol !== 'bosh') {
+        return json(res, 403, { ok: false, error: 'Bu amal faqat bosh admin uchun' });
+      }
+      const tana = async () => JSON.parse((await tanaOqi(req)) || '{}');
+      const xato400 = (matn) => json(res, 400, { ok: false, error: matn });
+      const tarix = (amal, tafsilot) => store.tarixYoz({ login: user.login, rol: user.rol, amal, tafsilot: tafsilot || [], ip });
+
+      if (req.method === 'GET' && yol === '/api/admin/bot-malumot') {
+        const cfg = store.configOl();
+        return json(res, 200, {
+          ok: true,
+          triggerlar: voronka.TRIGGERLAR,
+          toxtatishHodisalari: voronka.TOXTATISH_HODISALARI,
+          bosqichlar: obunachilar.BOSQICHLAR,
+          shartTurlari: obunachilar.SHART_TURLARI,
+          teglar: obunachilar.barchaTeglar(),
+          videolar: cfg.videolar.map((v) => ({ id: v.id, nom: v.nom })),
+          darajalar: cfg.darajalar.map((d) => ({ kod: d.kod, nom: d.nom })),
+          sozlama: voronka.sozlama(),
+          sinovId: db.sozlamaOl('sinov_tg:' + user.login, null),
+          bot: telegram.holat(),
+          botSozlangan: !!BOT_TOKEN,
+          mediaChegara: media.CHEGARA,
+          qismHajmi: media.QISM_HAJMI
+        });
+      }
+
+      // --- media ---
+      if (req.method === 'GET' && yol === '/api/admin/media') {
+        return json(res, 200, { ok: true, media: media.royxat() });
+      }
+      if (req.method === 'POST' && yol === '/api/admin/media/boshla') {
+        const r = media.boshla(await tana(), user.login);
+        return r.xato ? xato400(r.xato) : json(res, 200, Object.assign({ ok: true }, r));
+      }
+      if (req.method === 'POST' && yol === '/api/admin/media/qism') {
+        const r = media.qismYoz(url.searchParams.get('id'), url.searchParams.get('tartib'), await tanaBuf(req, 1024 * 1024));
+        return r.xato ? xato400(r.xato) : json(res, 200, Object.assign({ ok: true }, r));
+      }
+      if (req.method === 'POST' && yol === '/api/admin/media/tugat') {
+        const r = media.tugat((await tana()).id);
+        if (r.xato) return xato400(r.xato);
+        tarix('Fayl yukladi', [`${r.media.nom || r.media.fayl} (${r.media.tur}, ${hajmMatn(r.media.hajm)})`]);
+        return json(res, 200, { ok: true, media: r.media });
+      }
+      if (req.method === 'POST' && yol === '/api/admin/media/ochir') {
+        const r = media.ochir((await tana()).id);
+        if (r.xato) return xato400(r.xato);
+        tarix('Faylni o\'chirdi', [r.media.nom || r.media.fayl]);
+        return json(res, 200, { ok: true });
+      }
+
+      // --- obunachilar va segmentlar ---
+      if (req.method === 'GET' && yol === '/api/admin/obunachilar') {
+        const r = obunachilar.royxat({ q: url.searchParams.get('q') || '', sahifa: url.searchParams.get('sahifa') || 1, hajm: 50 });
+        return json(res, 200, { ok: true, jami: r.jami, qatorlar: r.qatorlar, stat: obunachilar.statistika() });
+      }
+      if (req.method === 'POST' && yol === '/api/admin/segment') {
+        const s = obunachilar.shartlarniTozala((await tana()).shartlar);
+        if (s.xato) return xato400(s.xato);
+        return json(res, 200, { ok: true, soni: obunachilar.soni(s.shartlar) });
+      }
+
+      // --- voronka ---
+      if (req.method === 'GET' && yol === '/api/admin/avtomatlar') {
+        return json(res, 200, { ok: true, avtomatlar: voronka.royxat(), sozlama: voronka.sozlama() });
+      }
+      if (req.method === 'POST' && yol === '/api/admin/avtomat') {
+        const r = voronka.saqla(await tana());
+        if (r.xato) return xato400(r.xato);
+        tarix(r.yangi ? 'Voronka avtomatini yaratdi' : 'Voronka avtomatini o\'zgartirdi',
+          [`${r.avtomat.nom} — ${r.avtomat.qadamlar.length} ta qadam`]);
+        return json(res, 200, { ok: true, avtomat: Object.assign(r.avtomat, { stat: voronka.statistika(r.avtomat.id) }) });
+      }
+      if (req.method === 'POST' && yol === '/api/admin/avtomat/holat') {
+        const body = await tana();
+        const r = voronka.holatQoy(body.id, !!body.faol);
+        if (r.xato) return xato400(r.xato);
+        tarix(body.faol ? 'Voronka avtomatini yoqdi' : 'Voronka avtomatini o\'chirdi', [r.avtomat.nom]);
+        return json(res, 200, { ok: true, avtomat: r.avtomat });
+      }
+      if (req.method === 'POST' && yol === '/api/admin/avtomat/ochir') {
+        const r = voronka.ochir((await tana()).id);
+        if (r.xato) return xato400(r.xato);
+        tarix('Voronka avtomatini o\'chirib tashladi', [r.avtomat.nom]);
+        return json(res, 200, { ok: true });
+      }
+      if (req.method === 'POST' && yol === '/api/admin/avtomat/qolda') {
+        const id = (await tana()).id;
+        const r = voronka.qoldaIshgaTushir(id);
+        if (r.xato) return xato400(r.xato);
+        tarix('Voronka avtomatini qo\'lda ishga tushirdi', [`${voronka.avtomatOl(id).nom} — ${r.soni} ta odam`]);
+        return json(res, 200, { ok: true, soni: r.soni, jami: r.jami });
+      }
+      if (req.method === 'POST' && yol === '/api/admin/voronka-sozlama') {
+        const r = voronka.sozlamaSaqla(await tana());
+        if (r.xato) return xato400(r.xato);
+        const t = r.sozlama.tinch;
+        tarix('Voronka tinch vaqtini o\'zgartirdi', [t.yoqilgan ? `Xabarlar faqat ${t.dan}–${t.gacha} oralig'ida` : 'Tinch vaqt o\'chirildi — xabarlar istalgan vaqtda']);
+        return json(res, 200, { ok: true, sozlama: r.sozlama });
+      }
+
+      // --- ommaviy xabar ---
+      if (req.method === 'GET' && yol === '/api/admin/tarqatmalar') {
+        return json(res, 200, { ok: true, tarqatmalar: tarqatma.royxat() });
+      }
+      if (req.method === 'POST' && yol === '/api/admin/tarqatma') {
+        const r = tarqatma.saqla(await tana(), user.login, voronka.avtomatBormi);
+        if (r.xato) return xato400(r.xato);
+        tarix(r.yangi ? 'Ommaviy xabar qoralamasini yaratdi' : 'Ommaviy xabarni tahrirladi', [r.tarqatma.nom]);
+        return json(res, 200, { ok: true, tarqatma: r.tarqatma });
+      }
+      if (req.method === 'POST' && yol === '/api/admin/tarqatma/amal') {
+        const body = await tana();
+        const amallar = {
+          boshla: () => (BOT_TOKEN ? tarqatma.boshla(body.id, { rejaVaqt: Number(body.rejaVaqt) || 0 }) : { xato: 'Bot tokeni sozlanmagan' }),
+          pauza: () => tarqatma.pauza(body.id),
+          davom: () => tarqatma.davom(body.id),
+          bekor: () => tarqatma.bekor(body.id),
+          'reja-olib': () => tarqatma.rejaniOlibTashla(body.id),
+          ochir: () => tarqatma.ochir(body.id)
+        };
+        if (!amallar[body.amal]) return xato400('Noma\'lum amal');
+        const r = amallar[body.amal]();
+        if (r.xato) return xato400(r.xato);
+        const t = r.tarqatma;
+        const nom = {
+          boshla: t.holat === 'rejalashtirilgan' ? 'Ommaviy xabarni rejalashtirdi' : 'Ommaviy xabarni yuborishni boshladi',
+          pauza: 'Ommaviy xabarni to\'xtatib turdi',
+          davom: 'Ommaviy xabarni davom ettirdi',
+          bekor: 'Ommaviy xabarni bekor qildi',
+          'reja-olib': 'Ommaviy xabar rejasini bekor qildi',
+          ochir: 'Ommaviy xabarni o\'chirdi'
+        }[body.amal];
+        const izoh = body.amal === 'boshla'
+          ? (t.holat === 'rejalashtirilgan' ? ` — ${toshkentVaqt(t.reja_vaqt)} (Toshkent)` : ` — ${t.jami} ta odamga`)
+          : '';
+        tarix(nom, [t.nom + izoh]);
+        return json(res, 200, { ok: true, tarqatma: body.amal === 'ochir' ? null : tarqatma.olish(t.id) });
+      }
+
+      // --- sinov xabari (o'ziga) ---
+      if (req.method === 'POST' && yol === '/api/admin/sinov-id') {
+        const id = String((await tana()).tgId || '').trim();
+        if (id && !/^\d{5,15}$/.test(id)) return xato400('Telegram ID faqat raqamlardan iborat bo\'ladi');
+        db.sozlamaQoy('sinov_tg:' + user.login, id || null);
+        return json(res, 200, { ok: true, sinovId: id || null });
+      }
+      if (req.method === 'POST' && yol === '/api/admin/sinov-yubor') {
+        if (!BOT_TOKEN) return xato400('Bot tokeni sozlanmagan');
+        const tgId = db.sozlamaOl('sinov_tg:' + user.login, null);
+        if (!tgId) return xato400('Avval "Sinov uchun Telegram ID" maydonini to\'ldiring');
+        if (!obunachilar.olish(tgId)) return xato400('Bu ID botda topilmadi. Avval botga /start yozing');
+        const t = yuboruvchi.tekshirXabar((await tana()).xabar, { avtomatBormi: voronka.avtomatBormi });
+        if (t.xato) return xato400(t.xato);
+        const n = await yuboruvchi.yubor(tgId, t.xabar, { manba: 'sinov' });
+        if (!n.ok) return xato400(n.bloklagan ? 'Botni bloklagansiz — botga qayta /start yozing' : 'Yuborilmadi: ' + n.xato);
+        return json(res, 200, { ok: true });
+      }
+
       /* ---- faqat BOSH ADMIN uchun ---- */
       if (yol === '/api/admin/users' || yol === '/api/admin/users/delete' || yol === '/api/admin/users/parol') {
         if (user.rol !== 'bosh') {
@@ -867,8 +1174,16 @@ function bolimNomi(bolim) {
 // Bo'sh qolsa barcha tarmoq interfeyslarida tinglaydi (kompyuterda sinash uchun).
 amo.navbatniBoshla();
 
+yuboruvchi.sozla({ sayt: SAYT_URL, config: () => store.configOl() });
+if (BOT_TOKEN) tgapi.sozla(BOT_TOKEN);
+eskiTelegramNatijalariniKochir();
+voronka.boshlangichlarniQosh();
+db.zaxiraBoshla();
+
 if (BOT_TOKEN && SAYT_URL) {
   telegram.ishgaTushir({ token: BOT_TOKEN, sayt: SAYT_URL, matnlar: () => store.configOl().matnlar });
+  voronka.ishgaTushir();
+  tarqatma.ishgaTushir();
 } else if (BOT_TOKEN) {
   console.warn('⚠️  BOT_TOKEN bor, lekin SAYT_URL yo\'q — bot ishga tushmadi (faqat initData tekshiruvi ishlaydi).');
 }
@@ -879,6 +1194,44 @@ const ishgaTushdi = () => {
 };
 if (HOST) server.listen(PORT, HOST, ishgaTushdi);
 else server.listen(PORT, ishgaTushdi);
+
+/* -------------------------------------------------------------------------
+ * Bot obunachilari ro'yxati keyinroq qo'shildi. Undan oldin testni Telegram
+ * ichida tugatganlar results.jsonl da bor — ularni bir marta ko'chirib olamiz.
+ * ------------------------------------------------------------------------- */
+function eskiTelegramNatijalariniKochir() {
+  try {
+    if (db.sozlamaOl('natijalar_kochirildi', false)) return;
+    const kodlar = {};
+    (store.configOl().darajalar || []).forEach((d) => { kodlar[d.nom] = d.kod; });
+
+    const qosh = db.db().prepare(`
+      INSERT INTO obunachilar (tg_id, ism, username, holat, birinchi_vaqt, oxirgi_vaqt, boshladi_vaqt, tugatdi_vaqt, video_id, daraja_kod, telefon)
+      VALUES (?, ?, ?, 'faol', ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(tg_id) DO UPDATE SET
+        tugatdi_vaqt = COALESCE(obunachilar.tugatdi_vaqt, excluded.tugatdi_vaqt),
+        video_id = COALESCE(obunachilar.video_id, excluded.video_id),
+        daraja_kod = COALESCE(obunachilar.daraja_kod, excluded.daraja_kod),
+        telefon = COALESCE(obunachilar.telefon, excluded.telefon)
+    `);
+
+    let soni = 0;
+    db.tranzaksiya(() => {
+      for (const r of store.natijalarOl()) {
+        const id = Number(r.tg_id);
+        if (!id || r.kanal !== 'telegram') continue;
+        const vaqt = Date.parse(r.vaqt) || Date.now();
+        qosh.run(id, String(r.ism || '').slice(0, 64) || null, String(r.tg_username || '').replace(/^@/, '').slice(0, 64) || null,
+          vaqt, vaqt, vaqt, vaqt, r.video_id || null, kodlar[r.daraja] || null, r.telefon || null);
+        soni++;
+      }
+    });
+    db.sozlamaQoy('natijalar_kochirildi', true);
+    if (soni) console.log(`👥 Testni Telegramda tugatgan ${soni} ta odam obunachilar ro'yxatiga ko'chirildi`);
+  } catch (e) {
+    console.error('[ko\'chirish]', e.message);
+  }
+}
 
 /* --------------------------------------------------------------- .env o'qish */
 function loadEnvFile() {

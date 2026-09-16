@@ -106,11 +106,65 @@
 
     <!-- ================= NATIJA ================= -->
     <section class="screen" id="screen-result">
-      <div class="result">
-        <h1 class="result__title" id="res-sarlavha"></h1>
-        <p class="result__text" id="res-daraja"></p>
-        <p class="result__text result__text--bold" id="res-video"></p>
-        <a class="btn btn--cta btn--link" id="btn-video" href="#" rel="noopener"></a>
+      <div class="natija">
+        <p class="natija__kichik" id="res-sarlavha"></p>
+        <h1 class="natija__salom" id="res-salom"></h1>
+
+        <!-- Xotira kuchi -->
+        <div class="karta-n natija-kirish">
+          <div class="natija__asosiy">
+            <div class="halqa">
+              <svg class="halqa__svg" viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="halqa__fon" cx="60" cy="60" r="52"></circle>
+                <circle class="halqa__chiziq" id="res-halqa" cx="60" cy="60" r="52"></circle>
+              </svg>
+              <div class="halqa__ich"><span class="halqa__son"><b id="res-kuch">0</b><small>/100</small></span></div>
+            </div>
+            <div class="natija__daraja">
+              <span class="natija__label" id="res-kuch-nom"></span>
+              <span class="daraja-nishon" id="res-daraja-nom"></span>
+            </div>
+          </div>
+          <p class="natija__matn" id="res-daraja"></p>
+        </div>
+
+        <!-- Yo'nalishlar -->
+        <div class="karta-n natija-kirish" id="res-yonalish-blok">
+          <h3 class="karta-n__sarlavha" id="res-yonalish-sarlavha"></h3>
+          <p class="karta-n__izoh" id="res-yonalish-izoh"></p>
+          <div id="res-yonalishlar"></div>
+        </div>
+
+        <div class="karta-n natija-kirish" id="res-muammo-blok" hidden>
+          <h3 class="karta-n__sarlavha" id="res-muammo-sarlavha"></h3>
+          <ul class="royxat royxat--muammo" id="res-muammolar"></ul>
+        </div>
+
+        <div class="karta-n natija-kirish" id="res-kuchli-blok" hidden>
+          <h3 class="karta-n__sarlavha" id="res-kuchli-sarlavha"></h3>
+          <ul class="royxat royxat--kuchli" id="res-kuchli"></ul>
+        </div>
+
+        <div class="karta-n natija-kirish natija__taqqos" id="res-taqqos-blok" hidden>
+          <span class="natija__taqqos-belgi" aria-hidden="true">📊</span>
+          <p id="res-taqqos"></p>
+        </div>
+
+        <div class="karta-n natija-kirish" id="res-reja-blok" hidden>
+          <h3 class="karta-n__sarlavha" id="res-reja-sarlavha"></h3>
+          <p class="natija__matn natija__matn--reja" id="res-reja"></p>
+        </div>
+
+        <!-- Tavsiya qilingan video -->
+        <div class="video-karta natija-kirish">
+          <p class="video-karta__sarlavha" id="res-video-sarlavha"></p>
+          <img class="video-karta__poster" id="res-poster" alt="" hidden />
+          <h3 class="video-karta__nom" id="res-video-nom"></h3>
+          <p class="natija__matn" id="res-video"></p>
+          <p class="video-karta__foyda" id="res-foyda-sarlavha" hidden></p>
+          <ul class="royxat royxat--foyda" id="res-foydalar"></ul>
+          <a class="btn btn--cta btn--link" id="btn-video" href="#" rel="noopener"></a>
+        </div>
       </div>
     </section>
 
@@ -124,6 +178,11 @@
     </section>
 
   </main>
+
+  <!-- Natija sahifasida pastga tushganda ham tugma ko'rinib tursin -->
+  <div class="natija-yopishqoq" id="natija-yopishqoq" aria-hidden="true">
+    <a class="btn btn--cta btn--link" id="btn-video-2" href="#" rel="noopener" tabindex="-1"></a>
+  </div>
 
   <script src="/app.js"></script>
 </body>

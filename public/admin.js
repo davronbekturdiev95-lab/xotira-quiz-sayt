@@ -10,6 +10,8 @@
   let BELGILAR = [];
   let RANG_NOMLARI = [];
   let SHAKL_NOMLARI = [];
+  let POSTER_URL = {};                 // media id → /media/... (video posterlari uchun)
+  const IZOH_OCHIQ = new Set();        // qaysi savolning "natija izohlari" bo'limi ochiq
 
   const $ = (x) => document.getElementById(x);
 
@@ -58,6 +60,15 @@
     e.textContent = matn;
     if (tur === 'ok') setTimeout(() => { if (e.textContent === matn) e.textContent = ''; }, 6000);
   }
+
+  /* Bot bo'limlari (admin-bot.js) shu yordamchilardan foydalanadi */
+  window.XT = {
+    h, api, holat, $, qatorBlok, vaqt, toliqVaqt,
+    config: () => CONFIG,
+    user: () => USER,
+    tabOchildi: null,
+    mediaTanla: null
+  };
 
   /* ================= KIRISH ================= */
   function loginXato(matn) {
@@ -150,6 +161,7 @@
       if (t.dataset.tab === 'statistika') statYukla();
       if (t.dataset.tab === 'tarix') tarixYukla();
       if (t.dataset.tab === 'adminlar') adminlarYukla();
+      if (window.XT.tabOchildi) window.XT.tabOchildi(t.dataset.tab);
     });
   });
 
@@ -158,6 +170,7 @@
     const d = await api('/api/admin/config');
     if (!d.ok) throw new Error(d.error || 'Malumot yuklanmadi');
     CONFIG = d.config;
+    POSTER_URL = d.posterlar || {};
     USER = d.user;
     OQLAR = d.oqlar;
     BELGILAR = d.belgilar;
@@ -246,7 +259,9 @@
           s.variantlar.push({ key: '', matn: '', ball: {}, belgi: {}, daraja: 0 });
           savollarChiz();
         }
-      })
+      }),
+
+      izohlarBlok(savol, indeks)
     );
 
     return karta;
@@ -378,6 +393,65 @@
 
   function HARF(i) { return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[i] || '?'; }
 
+  /* Natija sahifasi va Telegram xabaridagi izohlar — har bir variant uchun */
+  function izohlarBlok(savol, indeks) {
+    const kalit = savol.id || 'yangi-' + indeks;
+    const soni = savol.variantlar.filter((v) => v.muammo || v.kuchli || v.reja).length;
+    return h('details', {
+      class: 'izohlar',
+      open: IZOH_OCHIQ.has(kalit) || null,
+      ontoggle: (e) => { if (e.currentTarget.open) IZOH_OCHIQ.add(kalit); else IZOH_OCHIQ.delete(kalit); }
+    },
+      h('summary', null, '💬 Natijadagi izohlar',
+        h('span', { class: 'izohlar__son', text: soni ? soni + ' ta variantda bor' : 'bo\'sh' })),
+      h('p', { class: 'muted izohlar__yordam', text: 'Foydalanuvchi shu variantni tanlasa, natija sahifasida va Telegram xabarida chiqadi. ' +
+        'Bo\'sh qoldirilsa chiqmaydi. Muammolar og\'irligi (daraja + ball) bo\'yicha saralanib, eng muhim 4 tasi ko\'rsatiladi.' }),
+      ...savol.variantlar.map((v, vi) => h('div', { class: 'izoh-qator', 'data-vi': vi },
+        h('div', { class: 'izoh-qator__bosh' },
+          h('span', { class: 'variant__key', text: HARF(vi) }),
+          h('span', { class: 'izoh-qator__matn', text: v.matn || '(variant matni yo\'q)' })),
+        h('label', { class: 'izoh-katak' }, h('span', { text: '⚠️ Muammo' }),
+          h('input', { class: 'input izoh-muammo', value: v.muammo || '', maxlength: 300, placeholder: 'masalan: Ismlarni tez unutasiz' })),
+        h('label', { class: 'izoh-katak' }, h('span', { text: '✅ Kuchli tomon' }),
+          h('input', { class: 'input izoh-kuchli', value: v.kuchli || '', maxlength: 300 })),
+        h('label', { class: 'izoh-katak' }, h('span', { text: '🗓 Kunlik reja' }),
+          h('input', { class: 'input izoh-reja', value: v.reja || '', maxlength: 300 }))
+      ))
+    );
+  }
+
+  /* Video posteri: tanlash / almashtirish / olib tashlash */
+  function posterBlok(v, indeks) {
+    const url = v.poster ? POSTER_URL[v.poster] : null;
+    const ozgardi = () => holat('holat-videolar', 'Poster o\'zgardi — kuchga kirishi uchun SAQLASH ni bosing');
+    return h('div', { class: 'qator' },
+      h('label', { class: 'qator__label', text: 'Poster — natija sahifasida va Telegram xabarida chiqadi (16:9 tavsiya etiladi)' }),
+      h('div', { class: 'poster-tanlov' },
+        h('div', { class: 'poster-tanlov__rasm' + (url ? '' : ' poster-tanlov__rasm--bosh') },
+          url ? h('img', { src: url, alt: '' }) : h('span', { text: v.poster ? 'Rasm topilmadi' : '🖼 Poster yo\'q' })),
+        h('div', { class: 'poster-tanlov__amallar' },
+          h('button', {
+            class: 'btn btn--kichik', type: 'button', text: v.poster ? 'Almashtirish' : '+ Poster tanlash',
+            onclick: () => {
+              if (!window.XT.mediaTanla) return alert('Sahifani yangilang (Ctrl+F5)');
+              window.XT.mediaTanla({ tur: 'rasm' }, (m) => {
+                yigVideolar();
+                CONFIG.videolar[indeks].poster = m.id;
+                POSTER_URL[m.id] = m.url;
+                videolarChiz();
+                ozgardi();
+              });
+            }
+          }),
+          v.poster ? h('button', {
+            class: 'btn btn--kichik btn--ghost', type: 'button', text: 'Olib tashlash',
+            onclick: () => { yigVideolar(); CONFIG.videolar[indeks].poster = null; videolarChiz(); ozgardi(); }
+          }) : null
+        )
+      )
+    );
+  }
+
   function kochir(indeks, yon) {
     const yangi = indeks + yon;
     if (yangi < 0 || yangi >= CONFIG.savollar.length) return;
@@ -394,7 +468,7 @@
       const eski = CONFIG.savollar[i] || {};
       const variantlar = [...karta.querySelectorAll('.variant-guruh, .variant')]
         .filter((x) => x.classList.contains('variant-guruh') || !x.closest('.variant-guruh'))
-        .map((blok) => {
+        .map((blok, vi) => {
           const asos = blok.classList.contains('variant-guruh') ? blok.firstChild : blok;
           const katta = blok.classList.contains('variant-guruh') ? blok.lastChild : null;
 
@@ -407,6 +481,13 @@
           const guruh = asos.querySelector('.yosh-guruh');
           if (guruh) v.yoshGuruh = guruh.value;
           if (katta) v.katta = { ball: yigSonlar(katta, 'kball-'), belgi: yigSonlar(katta, 'kbelgi-') };
+
+          const eskiV = (eski.variantlar || [])[vi] || {};
+          const iz = karta.querySelector('.izoh-qator[data-vi="' + vi + '"]');
+          for (const k of ['muammo', 'kuchli', 'reja']) {
+            const q = iz ? iz.querySelector('.izoh-' + k).value : (eskiV[k] || '');
+            if (q.trim()) v[k] = q;
+          }
           return v;
         });
 
@@ -480,6 +561,9 @@
       qatorBlok('Havola', h('input', { class: 'input video-havola', type: 'url', value: v.havola || '', placeholder: 'https://t.me/...' })),
       qatorBlok('Natija sahifasidagi matn', h('textarea', { class: 'input video-matn', text: v.matn || '' })),
       qatorBlok('Kim uchun (faqat panel uchun izoh)', h('input', { class: 'input video-kimga', value: v.kimga || '' })),
+      posterBlok(v, indeks),
+      qatorBlok('Videoda nimalarni o\'rganasiz — natija sahifasida ro\'yxat bo\'lib chiqadi (har qator — bitta punkt)',
+        h('textarea', { class: 'input video-foydalar', text: v.foydalar || '', rows: 3 })),
 
       h('div', { class: 'qoida' },
         h('div', { class: 'qoida__qism' },
@@ -552,6 +636,8 @@
         id: eski.id || '',
         nom: karta.querySelector('.video-nom').value,
         kimga: karta.querySelector('.video-kimga').value,
+        foydalar: karta.querySelector('.video-foydalar').value,
+        poster: eski.poster || null,
         havola: karta.querySelector('.video-havola').value,
         matn: karta.querySelector('.video-matn').value,
         yonalish: karta.querySelector('.video-yonalish').value,
@@ -616,6 +702,21 @@
 
     natija_sarlavha: ['Natija: katta sarlavha', 'input'],
     natija_tugma: ['Natija: tugma yozuvi', 'input'],
+    natija_salom: ['Natija: salomlashish ({ism} — foydalanuvchi ismi)', 'input'],
+    natija_kuch_nom: ['Natija: halqa yonidagi yozuv', 'input'],
+    natija_yonalish_sarlavha: ['Natija: yo\'nalishlar sarlavhasi', 'input'],
+    natija_yonalish_izoh: ['Natija: yo\'nalishlar izohi', 'input'],
+    natija_oq_xotira: ['Natija: "Xotira" yo\'nalishi nomi', 'input'],
+    natija_oq_diqqat: ['Natija: "Diqqat" yo\'nalishi nomi', 'input'],
+    natija_oq_til: ['Natija: "Til" yo\'nalishi nomi', 'input'],
+    natija_muammo_sarlavha: ['Natija: muammolar sarlavhasi', 'input'],
+    natija_kuchli_sarlavha: ['Natija: kuchli tomonlar sarlavhasi', 'input'],
+    natija_reja_sarlavha: ['Natija: kunlik reja sarlavhasi', 'input'],
+    natija_taqqos_yaxshi: ['Natija: taqqoslash — yaxshi natija ({soni}, {foiz}). 30 ta natija to\'plangach chiqadi', 'input'],
+    natija_taqqos_past: ['Natija: taqqoslash — past natija ({soni}, {foiz})', 'input'],
+    natija_video_sarlavha: ['Natija: video kartochkasi sarlavhasi', 'input'],
+    natija_video_foyda: ['Natija: "videoda nimalarni o\'rganasiz" sarlavhasi', 'input'],
+    tg_natija_sarlavha: ['Bot: natija xabarining sarlavhasi ({ism})', 'input'],
 
     xato_sarlavha: ['Xatolik: sarlavha', 'input'],
     xato_tugma: ['Xatolik: tugma yozuvi', 'input'],
@@ -635,9 +736,11 @@
       'Savol ekrani': ['savol_yordam', 'savol_ogohlantirish', 'savol_tugma', 'savol_tugma_oxirgi', 'savol_orqaga'],
       'Ism / telefon formasi': ['lead_belgi', 'lead_sarlavha', 'lead_matn', 'lead_ism_label', 'lead_ism_placeholder', 'lead_tel_label', 'lead_tugma', 'lead_izoh'],
       'Yuklanish ekrani': ['yuklanish_1', 'yuklanish_2', 'yuklanish_3'],
-      'Natija sahifasi': ['natija_sarlavha', 'natija_tugma'],
+      'Natija sahifasi': ['natija_sarlavha', 'natija_salom', 'natija_kuch_nom', 'natija_yonalish_sarlavha', 'natija_yonalish_izoh',
+        'natija_oq_xotira', 'natija_oq_diqqat', 'natija_oq_til', 'natija_muammo_sarlavha', 'natija_kuchli_sarlavha',
+        'natija_reja_sarlavha', 'natija_taqqos_yaxshi', 'natija_taqqos_past', 'natija_video_sarlavha', 'natija_video_foyda', 'natija_tugma'],
       'Xatolik ekrani': ['xato_sarlavha', 'xato_tugma'],
-      'Telegram bot': ['bot_salom', 'bot_tugma', 'tg_raqam_tugma']
+      'Telegram bot': ['bot_salom', 'bot_tugma', 'tg_natija_sarlavha', 'tg_raqam_tugma']
     };
 
     for (const guruh of Object.keys(guruhlar)) {
@@ -880,7 +983,8 @@
     ['ochildi', 'Saytni ochdi', 'Sahifaga kirgan odamlar'],
     ['boshladi', 'Testni boshladi', '"Boshlash" tugmasini bosdi'],
     ['formaga_yetdi', 'Savollarni tugatdi', 'Barcha savollarga javob berib formaga yetdi'],
-    ['tugatdi', "Ma'lumot qoldirdi", 'Ism va telefonni yozib natijani oldi']
+    ['tugatdi', "Ma'lumot qoldirdi", 'Ism va telefonni yozib natijani oldi'],
+    ['video_bosdi', 'Videoni bosdi', '"Bepul videoni ko\'rish" tugmasini bosdi']
   ];
 
   function voronkaChiz() {
@@ -1136,6 +1240,7 @@
       if (!d.ok) return loginKorsat();
       panelKorsat();
       CONFIG = d.config; USER = d.user; OQLAR = d.oqlar; BELGILAR = d.belgilar;
+      POSTER_URL = d.posterlar || {};
     RANG_NOMLARI = d.rangNomlari || [];
     SHAKL_NOMLARI = d.shaklNomlari || [];
       $('kim').textContent = USER.login + (USER.rol === 'bosh' ? ' · bosh admin' : ' · admin');

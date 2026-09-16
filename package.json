@@ -5,10 +5,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test:score": "node scripts/test-scoring.js"
+    "test:score": "node scripts/test-scoring.js",
+    "test:bot": "node scripts/test-bot.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.13"
   },
   "private": true
 }

@@ -157,6 +157,66 @@ const SAVOLLAR = [
   }
 ];
 
+/* ----------------------------------------------------- NATIJA IZOHLARI
+ * Tanlangan javobga qarab natijada chiqadigan matnlar:
+ *   muammo — "Asosiy muammolaringiz" ro'yxatiga
+ *   kuchli — "Kuchli tomonlaringiz" ro'yxatiga
+ *   reja   — "Kunlik rejangiz" bo'limiga
+ * Admin panelda har bir savol ichidan tahrirlanadi.
+ * ------------------------------------------------------------------------ */
+const IZOHLAR = {
+  q3: {
+    A: { kuchli: 'Muhim ma\'lumotlarni kamdan-kam unutasiz' },
+    B: { muammo: 'Muhim ma\'lumotlar ba\'zan yodingizdan chiqib ketadi' },
+    C: { muammo: 'Muhim ma\'lumotlarni tez-tez unutib qo\'yasiz' },
+    D: { muammo: 'Yangi ma\'lumot deyarli yodda qolmaydi — uni saqlaydigan tizim yo\'q' }
+  },
+  q4: {
+    A: { muammo: 'Yuz va ismlarni eslab qolish qiyin kechadi' },
+    B: { muammo: 'Sanalar va tug\'ilgan kunlar esdan chiqadi' },
+    C: { muammo: 'Raqamlar va parollarni unutib qo\'yasiz' },
+    D: { muammo: 'Kundalik ishlar va rejalar yodingizdan chiqadi — diqqat tarqoq' },
+    E: { muammo: 'O\'rganilgan bilim va faktlar tez o\'chib ketadi' },
+    F: { muammo: 'Yangi chet tili so\'zlari yodda qolmaydi' }
+  },
+  q5: {
+    A: { muammo: 'Tanishganingizdan keyin ismlarni darhol unutasiz' },
+    B: { muammo: 'Yangi tanishlaringiz ismini ba\'zan eslay olmaysiz' },
+    C: { kuchli: 'Ismlarni yaxshi eslab qolasiz' }
+  },
+  q6: {
+    A: { muammo: 'Yosh bilan bog\'liq xotira pasayishi sizni jiddiy tashvishlantiradi' },
+    B: { muammo: 'Xotira pasayishi haqida vaqti-vaqti bilan xavotirlanasiz' }
+  },
+  q7: {
+    A: { muammo: 'O\'tmishdagi voqealarni eslash qiyin kechadi' },
+    B: { muammo: 'Ba\'zan o\'tmishdagi voqealarni eslashga qiynalasiz' },
+    C: { kuchli: 'Uzoq muddatli xotirangiz yaxshi ishlaydi' }
+  },
+  q9: {
+    B: { kuchli: 'Ikki tilda gaplashasiz — bu miya uchun doimiy mashq' },
+    C: { kuchli: 'Bir necha tilda gaplashasiz — miyangiz yangi ma\'lumotga yaxshi moslashadi' },
+    D: { kuchli: 'Bir necha tilda gaplashasiz — miyangiz yangi ma\'lumotga yaxshi moslashadi' }
+  },
+  q13: {
+    A: { kuchli: 'Lokatsiyalar usulidan xabardorsiz — texnikalarni tez o\'zlashtirasiz' }
+  },
+  q14: {
+    A: { kuchli: 'O\'zgarishga tayyorsiz — bu natijaning yarmi' },
+    B: { kuchli: 'Yangi usullarni sinab ko\'rishga ochiqsiz' }
+  },
+  q15: {
+    A: { reja: 'Kuniga 5 daqiqa — asosiy eslab qolish texnikalarini o\'rganish uchun yetarli. Eng muhimi, har kuni bajarish.' },
+    B: { reja: 'Kuniga 10 daqiqa: 5 daqiqa yangi texnika va 5 daqiqa takrorlash. Shu tartib ko\'nikmani mustahkamlaydi.' },
+    C: { reja: 'Kuniga 15 daqiqa: yangi texnika, takrorlash va o\'rganganingizni kundalik hayotda qo\'llash.' },
+    D: { reja: 'Kuniga 20 daqiqa: to\'liq mashg\'ulot — yangi texnika, takrorlash va diqqatni jamlash mashqlari.' }
+  }
+};
+
+for (const s of SAVOLLAR) {
+  for (const v of s.variantlar) Object.assign(v, (IZOHLAR[s.id] || {})[v.key] || {});
+}
+
 /* --------------------------------------------------------------- VIDEOLAR */
 const VIDEOLAR = [
   {
@@ -227,6 +287,21 @@ const VIDEOLAR = [
   }
 ];
 
+/* Natija sahifasida "Videoda nimalarni o'rganasiz" ro'yxati (har qator — bitta punkt) */
+const VIDEO_FOYDALAR = {
+  v1: 'Diqqat va xotirani kuchaytiradigan 3 ta asosiy sir\nHar kuni bajarsa bo\'ladigan oddiy mashqlar\nNatijani birinchi haftadanoq sezish uchun reja',
+  v2: 'Yangi so\'zlarni tez yodlash usullari\nTil o\'rganishni tizimga solish\nO\'rganilgan so\'zlar yodda qolishi uchun takrorlash tartibi',
+  v3: 'Ism va yuzlarni bir ko\'rishda eslab qolish\nRaqam, parol va sanalar uchun maxsus texnikalar\nKundalik hayotda qo\'llash uchun amaliy mashqlar',
+  v4: 'Chalg\'ishning asosiy sabablari va ularni to\'xtatish\nKundalik ishlarni unutmaslik tizimi\nDiqqatni bir joyga jamlash mashqlari',
+  v5: '"Super xotiraga 7 qadam" tizimi\nKatta hajmdagi ma\'lumotni tartib bilan eslab qolish\nKitob va faktlar uzoq yodda qolishi uchun usullar',
+  v6: 'Soatlab chalg\'imasdan dars qilish usuli\nDiqqatni kuchaytiradigan amaliy mashqlar\nO\'qigan narsani yodda saqlab qolish tartibi'
+};
+
+for (const v of VIDEOLAR) {
+  v.foydalar = VIDEO_FOYDALAR[v.id] || '';
+  v.poster = null;
+}
+
 /* -------------------------------------------------------------- DARAJALAR */
 const DARAJALAR = [
   {
@@ -281,6 +356,21 @@ const MATNLAR = {
 
   natija_sarlavha: 'NATIJANGIZ',
   natija_tugma: 'BEPUL VIDEONI KO\'RISH',
+  natija_salom: '{ism}, natijangiz tayyor',
+  natija_kuch_nom: 'Xotira kuchi',
+  natija_yonalish_sarlavha: 'Muammo qaysi sohada',
+  natija_yonalish_izoh: 'Foiz qancha yuqori bo\'lsa, shu sohada yordam shuncha zarur',
+  natija_oq_xotira: 'Xotira: ism, raqam, faktlar',
+  natija_oq_diqqat: 'Diqqat va chalg\'ish',
+  natija_oq_til: 'Chet tili o\'rganish',
+  natija_muammo_sarlavha: 'Asosiy muammolaringiz',
+  natija_kuchli_sarlavha: 'Kuchli tomonlaringiz',
+  natija_reja_sarlavha: 'Kunlik rejangiz',
+  natija_taqqos_yaxshi: 'Testdan o\'tgan {soni} kishining {foiz}% idan yaxshiroq natija ko\'rsatdingiz',
+  natija_taqqos_past: 'Testdan o\'tgan {soni} kishining {foiz}% i sizdan yaxshiroq natija ko\'rsatdi — xotirani mashq qilish vaqti keldi',
+  natija_video_sarlavha: 'Sizga mos bepul videodars',
+  natija_video_foyda: 'Videoda nimalarni o\'rganasiz:',
+  tg_natija_sarlavha: '🧠 {ism}, test natijangiz',
 
   xato_sarlavha: 'XATOLIK',
   xato_tugma: 'QAYTA URINISH',
@@ -412,6 +502,7 @@ function boshlangichConfig() {
     matnlar: Object.assign({}, MATNLAR),
     dizayn: JSON.parse(JSON.stringify(DIZAYN)),
     yoshSavoli: 'q1',
+    izohVersiya: 1,
     yangilangan: null
   };
 }
@@ -430,4 +521,4 @@ const BELGILAR = [
   { kod: 'yangi', nom: 'Yangi boshlovchi', izoh: 'Tajribasiz, vaqti kam' }
 ];
 
-module.exports = { boshlangichConfig, OQLAR, BELGILAR, RANG_NOMLARI, SHAKL_NOMLARI };
+module.exports = { boshlangichConfig, OQLAR, BELGILAR, RANG_NOMLARI, SHAKL_NOMLARI, VIDEO_FOYDALAR };
