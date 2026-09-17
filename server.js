@@ -937,6 +937,22 @@ const server = http.createServer(async (req, res) => {
         const m = media.olish((await tana()).id);
         if (!m || m.tur !== 'rasm') return xato400('Rasm topilmadi');
         if ((m.eni && m.eni < 160) || (m.boyi && m.boyi < 160)) return xato400('Rasm juda kichik — kamida 640×640 bo\'lgani yaxshi');
+
+        // Yangi rasm eskilarining ustiga qo'shiladi — profilda galereya bo'lib qolmasin,
+        // avval botdagi hamma rasmlarni olib tashlaymiz
+        let olindi = 0;
+        try {
+          const botId = Number(String(BOT_TOKEN).split(':')[0]);
+          for (let i = 0; i < 15; i++) {
+            const r = await tgapi.api('getUserProfilePhotos', { user_id: botId, limit: 1 });
+            if (!r || !r.total_count) break;
+            await tgapi.api('removeMyProfilePhoto', {});
+            olindi++;
+          }
+        } catch (e) {
+          console.error('[bot-rasm] eski rasmlar olinmadi:', e.message);
+        }
+
         try {
           await tgapi.apiForm('setMyProfilePhoto',
             { photo: { type: 'static', photo: 'attach://rasm' } },
@@ -948,7 +964,10 @@ const server = http.createServer(async (req, res) => {
             : t;
           return xato400('Telegram qabul qilmadi: ' + tushuntir);
         }
-        tarix('Bot avatarkasini o\'zgartirdi', [(m.nom || m.fayl) + (m.eni ? ` (${m.eni}×${m.boyi})` : '')]);
+        tarix('Bot avatarkasini o\'zgartirdi', [
+          (m.nom || m.fayl) + (m.eni ? ` (${m.eni}×${m.boyi})` : ''),
+          olindi ? `Eski rasmlar olib tashlandi: ${olindi} ta` : 'Eski rasm yo\'q edi'
+        ]);
         return json(res, 200, { ok: true });
       }
 
