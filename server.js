@@ -901,7 +901,7 @@ const server = http.createServer(async (req, res) => {
       /* ==================== BOT: media, obunachilar, voronka, ommaviy xabar */
       const BOSH_YOLLAR = [
         '/api/admin/avtomat', '/api/admin/avtomat/holat', '/api/admin/avtomat/ochir', '/api/admin/avtomat/qolda',
-        '/api/admin/voronka-sozlama', '/api/admin/tarqatma', '/api/admin/tarqatma/amal'
+        '/api/admin/voronka-sozlama', '/api/admin/tarqatma', '/api/admin/tarqatma/amal', '/api/admin/bot-rasm'
       ];
       if (req.method === 'POST' && BOSH_YOLLAR.includes(yol) && user.rol !== 'bosh') {
         return json(res, 403, { ok: false, error: 'Bu amal faqat bosh admin uchun' });
@@ -928,6 +928,28 @@ const server = http.createServer(async (req, res) => {
           mediaChegara: media.CHEGARA,
           qismHajmi: media.QISM_HAJMI
         });
+      }
+
+      // --- bot avatarkasi (Media bo'limidagi rasmdan) ---
+      // BotFather o'rniga Bot API'ning setMyProfilePhoto usuli. Rasm har safar yangi fayl bo'lib yuklanadi.
+      if (req.method === 'POST' && yol === '/api/admin/bot-rasm') {
+        if (!BOT_TOKEN) return xato400('Bot tokeni sozlanmagan');
+        const m = media.olish((await tana()).id);
+        if (!m || m.tur !== 'rasm') return xato400('Rasm topilmadi');
+        if ((m.eni && m.eni < 160) || (m.boyi && m.boyi < 160)) return xato400('Rasm juda kichik — kamida 640×640 bo\'lgani yaxshi');
+        try {
+          await tgapi.apiForm('setMyProfilePhoto',
+            { photo: { type: 'static', photo: 'attach://rasm' } },
+            { maydon: 'rasm', yol: media.faylYoli(m), nom: m.fayl, mime: m.mime }, 60000);
+        } catch (e) {
+          const t = e.tavsif || e.message;
+          const tushuntir = /CROP_SIZE_SMALL|too small/i.test(t) ? 'Rasm juda kichik — kamida 640×640 yuklang'
+            : /IMAGE_PROCESS|PHOTO_INVALID/i.test(t) ? 'Telegram bu rasmni o\'qiy olmadi — JPG formatda qayta yuklang'
+            : t;
+          return xato400('Telegram qabul qilmadi: ' + tushuntir);
+        }
+        tarix('Bot avatarkasini o\'zgartirdi', [(m.nom || m.fayl) + (m.eni ? ` (${m.eni}×${m.boyi})` : '')]);
+        return json(res, 200, { ok: true });
       }
 
       // --- media ---

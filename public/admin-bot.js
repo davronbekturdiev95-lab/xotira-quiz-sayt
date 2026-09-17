@@ -256,6 +256,25 @@
         !tanla && ishlatilgan.length ? h('div', { class: 'media-karta__foyd', text: 'Ishlatilgan: ' + ishlatilgan.join('; ') }) : null,
         !tanla ? h('div', { class: 'media-karta__amallar' },
           h('a', { class: 'mini', href: m.url, target: '_blank', rel: 'noopener', text: 'Ochish ↗' }),
+          m.tur === 'rasm' && boshmi() ? h('button', {
+            class: 'mini', type: 'button', text: '🤖 Bot rasmi', title: 'Shu rasmni botning avatarkasi qilib qo\'yish',
+            onclick: async (e) => {
+              const kv = m.eni && m.boyi && Math.abs(m.eni - m.boyi) / Math.max(m.eni, m.boyi) > 0.05
+                ? '\n\nRasm kvadrat emas — Telegram uni o\'rtasidan dumaloq qilib kesadi.' : '';
+              if (!(await tasdiqla('Bot avatarkasi', '"' + (m.nom || m.fayl) + '" botning profil rasmi qilib qo\'yilsinmi?' + kv, 'Qo\'yish'))) return;
+              const t = e.target;
+              t.disabled = true;
+              t.textContent = 'Yuborilmoqda...';
+              try {
+                const d = await post('/api/admin/bot-rasm', { id: m.id });
+                if (d.ok) bildirish('✓ Bot avatarkasi o\'zgardi. Telegram\'da ko\'rinishi uchun bir necha daqiqa ketishi mumkin', 'ok');
+                else bildirish(d.error || 'Qo\'yilmadi', 'err');
+              } finally {
+                t.disabled = false;
+                t.textContent = '🤖 Bot rasmi';
+              }
+            }
+          }) : null,
           h('button', {
             class: 'mini mini--qizil', type: 'button', text: 'O\'chirish',
             disabled: ishlatilgan.length ? true : null,
