@@ -304,6 +304,14 @@ Rasm/videolar `data/media/` da, bot bazasi `data/bot.db` da. Baza har kuni `data
 
 Sinov (haqiqiy Telegram'ga hech narsa yubormaydi): `node scripts/test-bot.js`
 
+### Botni tekshirish
+```bash
+npm run bot:sinov                    # .env dagi BOT_TOKEN
+npm run bot:sinov -- <token>         # boshqa token
+npm run bot:sinov -- --xabar <chat_id>   # sinov xabari ham yuboradi
+```
+Token haqiqiyligini, bot nomi va username'ini, webhook holatini (webhook turgan bo'lsa polling ishlamaydi), buyruqlar va mini app tugmasini tekshiradi. `--xabar` bo'lmasa Telegram'da hech narsa o'zgarmaydi — faqat `get*` so'rovlari ketadi.
+
 ---
 
 ## 9. Reklama piksellari
@@ -348,6 +356,7 @@ xotira-quiz-sayt/
 ├── google-sheets/Code.gs   Google Sheets skripti
 ├── scripts/test-scoring.js ball tizimini sinash
 ├── scripts/test-bot.js     bot modullarini sinash
+├── scripts/bot-sinov.js    bot tokeni va sozlamalarini tekshirish
 └── data/                   ⚠️ zaxira nusxa oladigan papka
     ├── bot.db              obunachilar, voronka, ommaviy xabarlar, media ro'yxati
     ├── media/              yuklangan rasm va videolar

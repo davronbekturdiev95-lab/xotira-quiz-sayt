@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "test:score": "node scripts/test-scoring.js",
-    "test:bot": "node scripts/test-bot.js"
+    "test:bot": "node scripts/test-bot.js",
+    "bot:sinov": "node scripts/bot-sinov.js"
   },
   "engines": {
     "node": ">=22.13"
